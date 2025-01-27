@@ -8,10 +8,18 @@ typedef struct coord{
     float y;
 }Coord;
 
+typedef struct solucao{
+    int caminho[4];
+    float fo;
+}Solucao; 
+
 int num_nos = 0;
 int hubs[HUBS];
 
+float fo = 0;
 float range_escolha_pontos = 0.25;
+
+Solucao listaSolucao[100000];
 
 Coord coordenadas[MAX_PONTOS];
 
@@ -23,4 +31,12 @@ void escolheHubs();
 
 void escolheHubsAleatoriaGulosa();
 
-//Gulosa (Nós hubs, pontos)
+float calculaFO(int* caminho);
+
+Solucao criaSolucao(int origem, int destino);
+
+int isHub(int no);
+
+int hubMaisProximo(int pontoOrigem);
+
+void printaSolucao();
