@@ -9,6 +9,7 @@
 using namespace std;
 
 // LEMBRAR DE FAZER ESCRITA DA SOLUÇÂO EM ARQUIVO
+// Tentar pegar hubs mais proximos e mais longe do centro meio a meio
 
 int main(){
     srand(time(NULL));
