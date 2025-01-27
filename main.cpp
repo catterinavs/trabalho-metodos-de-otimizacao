@@ -8,6 +8,8 @@
 
 using namespace std;
 
+// LEMBRAR DE FAZER ESCRITA DA SOLUÇÂO EM ARQUIVO
+
 int main(){
     srand(time(NULL));
 
