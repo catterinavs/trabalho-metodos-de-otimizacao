@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "header.h"
-#include <bits/algorithmfwd.h>
 #include <memory.h>
 
 using namespace std;
@@ -11,19 +10,25 @@ using namespace std;
 int main(){
     srand(time(NULL));
 
-    leArquivo("instances/inst5.txt");
-    escolheHubsAleatoriaGulosa();
+    memset(solucao, -1, sizeof(solucao));
 
-    int cont = 0;
+    leArquivo("instances/inst20.txt");
+    escolheHubs();
+
+    // procedimento de criação de solução (todos para todos)
+    fo = 0;
     for (int i = 0; i < num_nos; i++){
-        for(int j = 0; j < num_nos; j++){
-            listaSolucao[cont] = criaSolucao(i, j);
-            cont++;
+        for (int j = 0; j < num_nos; j++){
+            solucao[i][j] = criaSolucao(i, j);
+            if(solucao[i][j].fo > fo){
+                fo = solucao[i][j].fo;
+            }
         }
     }
-
-    printaSolucao();
     
+    printaSolucaoConsole();
+    printaSolucaoArquivo("sol.txt");
+
     return 0;
 }
 
@@ -48,79 +53,25 @@ float distancia(Coord a, Coord b){
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
 
-// //Aleatoria
-// void escolheHubs(){
-//     srand(time(NULL));
+void escolheHubs(){
+    srand(time(NULL));
 
-//     for(int i = 0; i < HUBS; i++) {
-//         bool unique;
-//         do {
-//             unique = true;
-//             hubs[i] = rand() % num_nos;
-//             for(int j = 0; j < i; j++) {
-//                 if(hubs[i] == hubs[j]) {
-//                     unique = false;
-//                     break;
-//                 }
-//             }
-//         } while(!unique);
-//     }
-    
-//     qsort(hubs, HUBS, sizeof(int), [](const void* a, const void* b) -> int {
-//         return *(int*)a - *(int*)b;
-//     });
-// }
-
-void escolheHubsAleatoriaGulosa(){
-
-    double distancia_total_x = 0;
-    double distancia_total_y = 0;
-
-    for(int i = 0; i < num_nos; i++){
-        distancia_total_x += coordenadas[i].x;
-        distancia_total_y += coordenadas[i].y;
+    for(int i = 0; i < HUBS; i++) {
+        bool unique;
+        do {
+            unique = true;
+            hubs[i] = rand() % num_nos;
+            for(int j = 0; j < i; j++) {
+                if(hubs[i] == hubs[j]) {
+                    unique = false;
+                    break;
+                }
+            }
+        } while(!unique);
     }
-
-    Coord ponto_central;
-
-    ponto_central.x = distancia_total_x/num_nos;
-    ponto_central.y = distancia_total_y/num_nos;
-
-    printf("Ponto central: %f %f\n", ponto_central.x, ponto_central.y);
-
-    double x_min = ponto_central.x - ponto_central.x*range_escolha_pontos;
-    double x_max = ponto_central.x + ponto_central.x*range_escolha_pontos;
-
-    double y_min = ponto_central.y - ponto_central.y*range_escolha_pontos;
-    double y_max = ponto_central.y + ponto_central.y*range_escolha_pontos;
-
-    int vetor_pontos_candidatos[num_nos];
-
-    memset(vetor_pontos_candidatos, -1, sizeof(vetor_pontos_candidatos));
-
-    for(int i = 0; i < num_nos; i++){
-        if(coordenadas[i].x >= x_min && coordenadas[i].x <= x_max && coordenadas[i].y >= y_min && coordenadas[i].y <= y_max){
-            vetor_pontos_candidatos[i] = i;
-        }
-    }
-
-    int i = 0;
-    int j = 0;
-
-    while(i < HUBS){
-        j = rand() % num_nos;
-        if(vetor_pontos_candidatos[j] != -1){
-            hubs[i] = vetor_pontos_candidatos[j];
-            vetor_pontos_candidatos[j] = -1;
-            i++;
-        }
-    }
-    qsort(hubs, HUBS, sizeof(int), [](const void* a, const void* b) -> int {
-        return *(int*)a - *(int*)b;
-    });
 }
 
-float calculaFO(int* caminho){
+float calculaFOPorCaminho(int* caminho){
     float fo = 0;
     for(int i = 0; i < 4; i++){
         for(int j = 1; j < 4; j++){
@@ -176,13 +127,11 @@ Solucao criaSolucao(int origem, int destino){
     solucao.caminho[1] = caminho[1];
     solucao.caminho[2] = caminho[2];
     solucao.caminho[3] = caminho[3];
-    solucao.fo = calculaFO(caminho);
+    solucao.fo = calculaFOPorCaminho(caminho);
 
     return solucao;
 }
 
-
-//PROVAVENTE ESTA COM PROBLEMA KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
 int hubMaisProximo(int pontoOrigem){
     int hubMaisProximo = -1;
     float distanciaMinima = 999999999;
@@ -197,7 +146,7 @@ int hubMaisProximo(int pontoOrigem){
     return hubMaisProximo;
 }
 
-void printaSolucao(){
+void printaSolucaoConsole(){
     printf("n: %d\tp: %d\n", num_nos, HUBS);
     printf("FO:\t%f\n", fo);
     printf("HUBS:\t[");
@@ -206,11 +155,86 @@ void printaSolucao(){
     }
     printf("]\n");
     printf("OR\tH1\tH2\tDS\tCUSTO\n");
-    for(int i = 0; i < 25; i++){
-        printf("%d\t%d\t%d\t%d\t%f\n", listaSolucao[i].caminho[0], listaSolucao[i].caminho[1], listaSolucao[i].caminho[2], listaSolucao[i].caminho[3], listaSolucao[i].fo);
+    for(int i = 0; i < num_nos; i++){
+        for(int j = 0; j < num_nos; j++){
+            printf("%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
+        }
     }
+}
+
+void printaSolucaoArquivo(char* nome_arquivo){
+    FILE* arq = fopen(nome_arquivo, "w");
+
+    if(arq == NULL){
+        cout << "Erro ao abrir o arquivo para escrita" << endl;
+    }
+
+    fprintf(arq, "n: %d\tp: %d\n", num_nos, HUBS);
+    fprintf(arq, "FO:\t%f\n", fo);
+    fprintf(arq, "HUBS:\t[");
+    for(int i = 0; i < HUBS; i++){
+        fprintf(arq, "%d, ", hubs[i]);
+    }
+    fprintf(arq, "]\n");
+    fprintf(arq, "OR\tH1\tH2\tDS\tCUSTO\n");
+    for(int i = 0; i < num_nos; i++){
+        for(int j = 0; j < num_nos; j++){
+            fprintf(arq, "%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
+        }
+    }
+
+    fclose(arq);
 }
 
 //Se o Nó origem é igual ao destino, vai ao hub mais próximo e volta - OK
 //Se o Nó origem é um hub, vai ao hub mais próximo e volta - OK
 //Se o Nó origem não é um hub, vai ao hub mais próximo verifica se o destino é mais proximo do hub, se for, vai ao hub, hub destino.
+
+// void escolheHubsAleatoriaGulosa(){
+
+//     double distancia_total_x = 0;
+//     double distancia_total_y = 0;
+
+//     for(int i = 0; i < num_nos; i++){
+//         distancia_total_x += coordenadas[i].x;
+//         distancia_total_y += coordenadas[i].y;
+//     }
+
+//     Coord ponto_central;
+
+//     ponto_central.x = distancia_total_x/num_nos;
+//     ponto_central.y = distancia_total_y/num_nos;
+
+//     printf("Ponto central: %f %f\n", ponto_central.x, ponto_central.y);
+
+//     double x_min = ponto_central.x - ponto_central.x*range_escolha_pontos;
+//     double x_max = ponto_central.x + ponto_central.x*range_escolha_pontos;
+
+//     double y_min = ponto_central.y - ponto_central.y*range_escolha_pontos;
+//     double y_max = ponto_central.y + ponto_central.y*range_escolha_pontos;
+
+//     int vetor_pontos_candidatos[num_nos];
+
+//     memset(vetor_pontos_candidatos, -1, sizeof(vetor_pontos_candidatos));
+
+//     for(int i = 0; i < num_nos; i++){
+//         if(coordenadas[i].x <= x_min && coordenadas[i].x >= x_max && coordenadas[i].y <= y_min && coordenadas[i].y >= y_max){
+//             vetor_pontos_candidatos[i] = i;
+//         }
+//     }
+
+//     int i = 0;
+//     int j = 0;
+
+//     while(i < HUBS){
+//         j = rand() % num_nos;
+//         if(vetor_pontos_candidatos[j] != -1){
+//             hubs[i] = vetor_pontos_candidatos[j];
+//             vetor_pontos_candidatos[j] = -1;
+//             i++;
+//         }
+//     }
+//     qsort(hubs, HUBS, sizeof(int), [](const void* a, const void* b) -> int {
+//         return *(int*)a - *(int*)b;
+//     });
+// }

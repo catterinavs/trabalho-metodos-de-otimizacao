@@ -1,7 +1,7 @@
 #define MAX_PONTOS 200
 
 //Quantidade de hubs
-#define HUBS 3
+#define HUBS 4
 
 typedef struct coord{
     float x;
@@ -15,11 +15,10 @@ typedef struct solucao{
 
 int num_nos = 0;
 int hubs[HUBS];
+Solucao solucao[200][200];
 
 float fo = 0;
-float range_escolha_pontos = 0.25;
-
-Solucao listaSolucao[100000];
+float range_escolha_pontos = 0.5;
 
 Coord coordenadas[MAX_PONTOS];
 
@@ -31,7 +30,7 @@ void escolheHubs();
 
 void escolheHubsAleatoriaGulosa();
 
-float calculaFO(int* caminho);
+float calculaFOPorCaminho(int* caminho);
 
 Solucao criaSolucao(int origem, int destino);
 
