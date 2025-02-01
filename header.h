@@ -17,8 +17,9 @@ int num_nos = 0;
 int hubs[HUBS];
 Solucao solucao[200][200];
 
-float fo = 0;
 float range_escolha_pontos = 0.5;
+
+float fo = 0;
 
 Coord coordenadas[MAX_PONTOS];
 
@@ -27,8 +28,6 @@ void leArquivo(char* nome_arquivo);
 float distancia(Coord a, Coord b);
 
 void escolheHubs();
-
-void escolheHubsAleatoriaGulosa();
 
 float calculaFOPorCaminho(int* caminho);
 
@@ -39,3 +38,7 @@ int isHub(int no);
 int hubMaisProximo(int pontoOrigem);
 
 void printaSolucao();
+
+void printaSolucaoArquivo(char* nome_arquivo);
+
+void printaSolucaoConsole();

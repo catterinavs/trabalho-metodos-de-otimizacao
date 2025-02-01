@@ -4,20 +4,17 @@
 #include <math.h>
 #include "header.h"
 #include <memory.h>
+#include <limits>
 
 using namespace std;
 
-// LEMBRAR DE FAZER ESCRITA DA SOLUÇÂO EM ARQUIVO
-// Tentar pegar hubs mais proximos e mais longe do centro meio a meio
-
 int main(){
-    srand(time(NULL));
 
     memset(solucao, -1, sizeof(solucao));
+    memset(hubs, -1, sizeof(hubs));
 
     leArquivo("instances/inst20.txt");
     escolheHubs();
-
     // procedimento de criação de solução (todos para todos)
     fo = 0;
     for (int i = 0; i < num_nos; i++){
@@ -28,6 +25,7 @@ int main(){
             }
         }
     }
+    
     
     printaSolucaoConsole();
     printaSolucaoArquivo("sol.txt");
@@ -137,12 +135,13 @@ Solucao criaSolucao(int origem, int destino){
 
 int hubMaisProximo(int pontoOrigem){
     int hubMaisProximo = -1;
-    float distanciaMinima = 999999999;
+    double distanciaMinima = std::numeric_limits<double>::max();
 
     for(int i = 0; i < HUBS; i++){
-        if(distancia(coordenadas[pontoOrigem], coordenadas[hubs[i]]) < distanciaMinima && pontoOrigem != hubs[i]){
-            distanciaMinima = distancia(coordenadas[pontoOrigem], coordenadas[hubs[i]]);
-            hubMaisProximo = i;
+        double dist = distancia(coordenadas[pontoOrigem], coordenadas[hubs[i]]);
+        if(dist < distanciaMinima){
+            distanciaMinima = dist;
+            hubMaisProximo = hubs[i];
         }
     }
 
