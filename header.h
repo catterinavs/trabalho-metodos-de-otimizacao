@@ -1,7 +1,7 @@
 #define MAX_PONTOS 200
 
 //Quantidade de hubs
-#define HUBS 4
+#define HUBS 50
 
 typedef struct coord{
     float x;

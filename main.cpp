@@ -10,36 +10,21 @@ using namespace std;
 
 int main(){
 
-    //Instancia as variaveis de clocks que serão usados no calculo de tempo
-    //clock_t h;
-    //clock_t h2;
-    //double tempo, tempo2;
-    //const int repeticoes = 1000;
-
     //le o arquivo de instancias
-    leArquivo("instances/inst20.txt");
+    leArquivo("instances/inst200.txt");
 
     //escolhe os hubs aleatorios
     escolheHubs();
 
-    //h = clock();
     // procedimento de criação de solução (todos para todos)
     fo = 0;
-    //for (int r = 0; r < repeticoes; r++){
         for (int i = 0; i < num_nos; i++){
             for (int j = 0; i >= j; j++){
                 solucao[i][j] = criaSolucao(i, j);  
             }
         }
-        //printf("%d ", r);
-    //}
-    //h = clock() - h;
-    //tempo = (double)h/CLOCKS_PER_SEC;
-    //printf("\nCriar solucao: %.5f\n", tempo);
 
     //calculo da FO
-    //h2 = clock();
-    //for (int r = 0; r < repeticoes; r++){
         for (int i = 0; i < num_nos; i++){
             for (int j = 0; i >= j; j++){
                 solucao[i][j].fo = calculaFOPorCaminho(solucao[i][j].caminho);
@@ -48,11 +33,7 @@ int main(){
                 }
             }
         }   
-        //printf("%d ", r);
-    //}    
-    //h2 = clock() - h2;
-    //tempo2 = (double)h2/CLOCKS_PER_SEC;
-    //printf("\nCriar FO: %.5f", tempo2);
+
 
     //printa soluções 
     printaSolucaoConsole();
@@ -87,6 +68,7 @@ float distancia(Coord a, Coord b){
 
 // escolhe aletaoriamente os hubs que serão utilizados 
 void escolheHubs(){
+    srand(time(NULL));
 
     for(int i = 0; i < HUBS; i++) {
         bool unique;
