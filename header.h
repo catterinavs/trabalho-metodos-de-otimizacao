@@ -42,3 +42,5 @@ void printaSolucao();
 void printaSolucaoArquivo(char* nome_arquivo);
 
 void printaSolucaoConsole();
+
+void leArquivoSolucao(char* nome_arquivo);

@@ -13,8 +13,12 @@ int main(){
     memset(solucao, -1, sizeof(solucao));
     memset(hubs, -1, sizeof(hubs));
 
+    //le o arquivo de instancias
     leArquivo("instances/inst20.txt");
+
+    //escolhe os hubs aleatorios
     escolheHubs();
+
     // procedimento de criação de solução (todos para todos)
     fo = 0;
     for (int i = 0; i < num_nos; i++){
@@ -26,9 +30,9 @@ int main(){
         }
     }
     
-    
+    //printa soluções 
     printaSolucaoConsole();
-    printaSolucaoArquivo("sol.txt");
+    printaSolucaoArquivo("sol.txt"); 
 
     return 0;
 }
@@ -165,7 +169,7 @@ void printaSolucaoConsole(){
 }
 
 void printaSolucaoArquivo(char* nome_arquivo){
-    FILE* arq = fopen(nome_arquivo, "w");
+    FILE* arq = fopen(nome_arquivo, "a");
 
     if(arq == NULL){
         cout << "Erro ao abrir o arquivo para escrita" << endl;
@@ -183,6 +187,54 @@ void printaSolucaoArquivo(char* nome_arquivo){
         for(int j = 0; j < num_nos; j++){
             fprintf(arq, "%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
         }
+    }
+
+    fclose(arq);
+}
+
+void clonar(Solucao& destino, const Solucao& origem) {
+    memcpy(&destino, &origem, sizeof(Solucao));
+}
+
+void leArquivoSolucao(char* nome_arquivo){
+    FILE* arq = fopen(nome_arquivo, "r");
+
+    if(arq == NULL){
+        cout << "Erro ao abrir o arquivo" << endl;
+        return;
+    }
+
+    int n, p;
+    float fo;
+    int hubsTemp[HUBS];
+
+    fscanf(arq, "n: %d\tp: %d\n", &n, &p);
+    fscanf(arq, "FO:\t%f\n", &fo);
+    fscanf(arq, "HUBS:\t[");
+
+    for (int i = 0; i < p; i++) {
+        fscanf(arq, "%d,", &hubsTemp[i]);
+    }
+    fscanf(arq, " ]\n");
+    fscanf(arq, "OR\t	H1\t	H2\t	DS\t	CUSTO\t\n");
+
+    num_nos = n;
+    fo = fo;
+
+    while (!feof(arq))
+    {
+        int origem, h1, h2, destino;
+        float custo;
+
+        fscanf(arq, "%d\t%d\t%d\t%d\t%f\n", &origem, &h1, &h2, &destino, &custo);
+
+        // Armazena a solução lida
+        solucao[origem][destino].caminho[0] = origem;
+        solucao[origem][destino].caminho[1] = h1;
+        solucao[origem][destino].caminho[2] = h2;
+        solucao[origem][destino].caminho[3] = destino;
+        solucao[origem][destino].fo = custo;
+
     }
 
     fclose(arq);
