@@ -10,8 +10,11 @@ using namespace std;
 
 int main(){
 
-    memset(solucao, -1, sizeof(solucao));
-    memset(hubs, -1, sizeof(hubs));
+    //Instancia as variaveis de clocks que serão usados no calculo de tempo
+    //clock_t h;
+    //clock_t h2;
+    //double tempo, tempo2;
+    //const int repeticoes = 1000;
 
     //le o arquivo de instancias
     leArquivo("instances/inst20.txt");
@@ -19,17 +22,38 @@ int main(){
     //escolhe os hubs aleatorios
     escolheHubs();
 
+    //h = clock();
     // procedimento de criação de solução (todos para todos)
     fo = 0;
-    for (int i = 0; i < num_nos; i++){
-        for (int j = 0; j < num_nos; j++){
-            solucao[i][j] = criaSolucao(i, j);
-            if(solucao[i][j].fo > fo){
-                fo = solucao[i][j].fo;
+    //for (int r = 0; r < repeticoes; r++){
+        for (int i = 0; i < num_nos; i++){
+            for (int j = 0; i >= j; j++){
+                solucao[i][j] = criaSolucao(i, j);  
             }
         }
-    }
-    
+        //printf("%d ", r);
+    //}
+    //h = clock() - h;
+    //tempo = (double)h/CLOCKS_PER_SEC;
+    //printf("\nCriar solucao: %.5f\n", tempo);
+
+    //calculo da FO
+    //h2 = clock();
+    //for (int r = 0; r < repeticoes; r++){
+        for (int i = 0; i < num_nos; i++){
+            for (int j = 0; i >= j; j++){
+                solucao[i][j].fo = calculaFOPorCaminho(solucao[i][j].caminho);
+                if(solucao[i][j].fo > fo){
+                    fo = solucao[i][j].fo;
+                }
+            }
+        }   
+        //printf("%d ", r);
+    //}    
+    //h2 = clock() - h2;
+    //tempo2 = (double)h2/CLOCKS_PER_SEC;
+    //printf("\nCriar FO: %.5f", tempo2);
+
     //printa soluções 
     printaSolucaoConsole();
     printaSolucaoArquivo("sol.txt"); 
@@ -37,6 +61,8 @@ int main(){
     return 0;
 }
 
+
+//le os arquivos 
 void leArquivo(char* nome_arquivo){
     FILE* arq = fopen(nome_arquivo, "r");
 
@@ -54,12 +80,13 @@ void leArquivo(char* nome_arquivo){
     fclose(arq);
 }
 
+//calcula a distancia entres quaisquer nós
 float distancia(Coord a, Coord b){
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
 
+// escolhe aletaoriamente os hubs que serão utilizados 
 void escolheHubs(){
-    srand(time(NULL));
 
     for(int i = 0; i < HUBS; i++) {
         bool unique;
@@ -76,6 +103,7 @@ void escolheHubs(){
     }
 }
 
+//calculo da FO
 float calculaFOPorCaminho(int* caminho){
     float fo = 0;
     for(int i = 0; i < 4; i++){
@@ -91,6 +119,7 @@ float calculaFOPorCaminho(int* caminho){
     return fo;
 }
 
+//verifica se um nó é hub
 int isHub(int no){
     for(int i = 0; i < HUBS; i++){
         if(hubs[i] == no){
@@ -101,6 +130,7 @@ int isHub(int no){
 
 }
 
+//A partir dos nós selecionados como hub ele cria a solução viavel, ligando os nós não hub aos hubs
 Solucao criaSolucao(int origem, int destino){
     int caminho[4];
     memset(caminho, -1, sizeof(caminho));
@@ -132,11 +162,11 @@ Solucao criaSolucao(int origem, int destino){
     solucao.caminho[1] = caminho[1];
     solucao.caminho[2] = caminho[2];
     solucao.caminho[3] = caminho[3];
-    solucao.fo = calculaFOPorCaminho(caminho);
 
     return solucao;
 }
 
+//verifica o hub mais proximo do nó
 int hubMaisProximo(int pontoOrigem){
     int hubMaisProximo = -1;
     double distanciaMinima = std::numeric_limits<double>::max();
@@ -162,7 +192,7 @@ void printaSolucaoConsole(){
     printf("]\n");
     printf("OR\tH1\tH2\tDS\tCUSTO\n");
     for(int i = 0; i < num_nos; i++){
-        for(int j = 0; j < num_nos; j++){
+        for(int j = 0; i >= j; j++){
             printf("%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
         }
     }
@@ -184,7 +214,7 @@ void printaSolucaoArquivo(char* nome_arquivo){
     fprintf(arq, "]\n");
     fprintf(arq, "OR\tH1\tH2\tDS\tCUSTO\n");
     for(int i = 0; i < num_nos; i++){
-        for(int j = 0; j < num_nos; j++){
+        for(int j = 0; i >= j; j++){
             fprintf(arq, "%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
         }
     }
@@ -228,7 +258,6 @@ void leArquivoSolucao(char* nome_arquivo){
 
         fscanf(arq, "%d\t%d\t%d\t%d\t%f\n", &origem, &h1, &h2, &destino, &custo);
 
-        // Armazena a solução lida
         solucao[origem][destino].caminho[0] = origem;
         solucao[origem][destino].caminho[1] = h1;
         solucao[origem][destino].caminho[2] = h2;

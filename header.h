@@ -17,7 +17,7 @@ int num_nos = 0;
 int hubs[HUBS];
 Solucao solucao[200][200];
 
-float range_escolha_pontos = 0.5;
+// float range_escolha_pontos = 0.5;
 
 float fo = 0;
 
