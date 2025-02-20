@@ -8,13 +8,14 @@
 
 using namespace std;
 
-int main(){
+int main()
+{
 
-    //le o arquivo de instancias
+    // le o arquivo de instancias
     leArquivo("instances/inst20.txt");
 
-    //escolhe os hubs aleatorios
-    //escolheHubs();
+    // escolhe os hubs aleatorios
+    // escolheHubs();
 
     hubs[0] = 3;
     hubs[1] = 5;
@@ -23,79 +24,91 @@ int main(){
 
     // procedimento de criação de solução (todos para todos)
     fo = 0;
-        for (int i = 0; i < num_nos; i++){
-            for (int j = 0; j < num_nos; j++){
-                solucao[i][j] = criaSolucao(i, j);  
+    for (int i = 0; i < num_nos; i++)
+    {
+        for (int j = 0; j < num_nos; j++)
+        {
+            solucao[i][j] = criaSolucao(i, j);
+        }
+    }
+
+    // calculo da FO
+    for (int i = 0; i < num_nos; i++)
+    {
+        for (int j = 0; i >= j; j++)
+        {
+            solucao[i][j].fo = calculaFOPorCaminho(solucao[i][j].caminho);
+            if (solucao[i][j].fo > fo)
+            {
+                fo = solucao[i][j].fo;
             }
         }
+    }
 
-    //calculo da FO
-        for (int i = 0; i < num_nos; i++){
-            for (int j = 0; i >= j; j++){
-                solucao[i][j].fo = calculaFOPorCaminho(solucao[i][j].caminho);
-                if(solucao[i][j].fo > fo){
-                    fo = solucao[i][j].fo;
-                }
-            }
-        }   
-
-
-    //printa soluções 
+    // printa soluções
     printaSolucaoConsole();
-    printaSolucaoArquivo("sol.txt"); 
+    printaSolucaoArquivo("sol.txt");
 
     return 0;
 }
 
+// le os arquivos
+void leArquivo(char *nome_arquivo)
+{
+    FILE *arq = fopen(nome_arquivo, "r");
 
-//le os arquivos 
-void leArquivo(char* nome_arquivo){
-    FILE* arq = fopen(nome_arquivo, "r");
-
-    if(arq == NULL){
+    if (arq == NULL)
+    {
         cout << "Erro ao abrir o arquivo" << endl;
         return;
     }
 
     fscanf(arq, "%d", &num_nos);
 
-    for (int i = 0; i<num_nos; i++){
+    for (int i = 0; i < num_nos; i++)
+    {
         fscanf(arq, "%f %f\n", &coordenadas[i].x, &coordenadas[i].y);
     }
 
     fclose(arq);
 }
 
-//calcula a distancia entres quaisquer nós
-float distancia(Coord a, Coord b){
+// calcula a distancia entres quaisquer nós
+float distancia(Coord a, Coord b)
+{
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
 
-// escolhe aletaoriamente os hubs que serão utilizados 
-void escolheHubs(){
+// escolhe aletaoriamente os hubs que serão utilizados
+void escolheHubs()
+{
     srand(time(NULL));
 
-    for(int i = 0; i < HUBS; i++) {
+    for (int i = 0; i < HUBS; i++)
+    {
         bool unique;
-        do {
+        do
+        {
             unique = true;
             hubs[i] = rand() % num_nos;
-            for(int j = 0; j < i; j++) {
-                if(hubs[i] == hubs[j]) {
+            for (int j = 0; j < i; j++)
+            {
+                if (hubs[i] == hubs[j])
+                {
                     unique = false;
                     break;
                 }
             }
-        } while(!unique);
+        } while (!unique);
     }
 }
 
-//calculo da FO
+// calculo da FO
 /*float calculaFOPorCaminho(int* caminho){
     float fo = 0;
     for(int i = 0; i < 4; i++){
         for(int j = 1; j < 4; j++){
-            
+
             if(isHub(caminho[i]) && isHub(caminho[j])){
                 fo += distancia(coordenadas[caminho[i]], coordenadas[caminho[j]])*0.75;
             }
@@ -107,7 +120,8 @@ void escolheHubs(){
     return fo;
 }*/
 
-float calculaFOPorCaminho(int* caminho) {
+float calculaFOPorCaminho(int *caminho)
+{
     float fo = 0;
 
     // Custo de coleta entre o nó de origem e o primeiro hub (β = 1)
@@ -125,18 +139,20 @@ float calculaFOPorCaminho(int* caminho) {
     return fo;
 }
 
-//verifica se um nó é hub
-int isHub(int no){
-    for(int i = 0; i < HUBS; i++){
-        if(hubs[i] == no){
+// verifica se um nó é hub
+int isHub(int no)
+{
+    for (int i = 0; i < HUBS; i++)
+    {
+        if (hubs[i] == no)
+        {
             return 1;
         }
     }
     return 0;
-
 }
 
-//A partir dos nós selecionados como hub ele cria a solução viavel, ligando os nós não hub aos hubs
+// A partir dos nós selecionados como hub ele cria a solução viavel, ligando os nós não hub aos hubs
 /*Solucao criaSolucao(int origem, int destino){
     int caminho[4];
     memset(caminho, -1, sizeof(caminho));
@@ -159,8 +175,8 @@ int isHub(int no){
             caminho[2] = hubMaisProximo(destino);
             caminho[3] = destino;
         }
-        
-        
+
+
     }
     else{
         caminho[0] = origem;
@@ -170,7 +186,7 @@ int isHub(int no){
             caminho[3] = destino;
         }
         else{
-            caminho[2] = hubMaisProximo(origem); 
+            caminho[2] = hubMaisProximo(origem);
             caminho[3] = destino;
         }
     }
@@ -184,7 +200,8 @@ int isHub(int no){
     return solucao;
 }*/
 
-Solucao criaSolucao(int origem, int destino) {
+Solucao criaSolucao(int origem, int destino)
+{
     int caminho[4];
     memset(caminho, -1, sizeof(caminho));
 
@@ -192,8 +209,10 @@ Solucao criaSolucao(int origem, int destino) {
     int melhorHub1 = -1, melhorHub2 = -1;
 
     // Testa todas as combinações de hubs
-    for (int k = 0; k < HUBS; k++) {
-        for (int l = 0; l < HUBS; l++) {
+    for (int k = 0; k < HUBS; k++)
+    {
+        for (int l = 0; l < HUBS; l++)
+        {
             // Custo de coleta entre o nó de origem e o hub k (β = 1)
             float cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
             // Custo de transferência entre o hub k e o hub l (α = 0.75)
@@ -204,7 +223,8 @@ Solucao criaSolucao(int origem, int destino) {
             float custoTotal = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
 
             // Verifica se este caminho é o melhor até agora
-            if (custoTotal < menorCusto) {
+            if (custoTotal < menorCusto)
+            {
                 menorCusto = custoTotal;
                 melhorHub1 = hubs[k];
                 melhorHub2 = hubs[l];
@@ -227,14 +247,17 @@ Solucao criaSolucao(int origem, int destino) {
     return solucao;
 }
 
-//verifica o hub mais proximo do nó
-int hubMaisProximo(int pontoOrigem){
+// verifica o hub mais proximo do nó
+int hubMaisProximo(int pontoOrigem)
+{
     int hubMaisProximo = -1;
     double distanciaMinima = std::numeric_limits<double>::max();
 
-    for(int i = 0; i < HUBS; i++){
+    for (int i = 0; i < HUBS; i++)
+    {
         double dist = distancia(coordenadas[pontoOrigem], coordenadas[hubs[i]]);
-        if(dist < distanciaMinima){
+        if (dist < distanciaMinima)
+        {
             distanciaMinima = dist;
             hubMaisProximo = hubs[i];
         }
@@ -243,45 +266,56 @@ int hubMaisProximo(int pontoOrigem){
     return hubMaisProximo;
 }
 
-void printaSolucaoConsole(){
+void printaSolucaoConsole()
+{
     printf("n: %d\tp: %d\n", num_nos, HUBS);
     printf("FO:\t%f\n", fo);
     printf("HUBS:\t[");
-    for(int i = 0; i < HUBS; i++){
+    for (int i = 0; i < HUBS; i++)
+    {
         printf("%d", hubs[i]);
-        if (i < HUBS - 1) {
+        if (i < HUBS - 1)
+        {
             printf(", ");
         }
     }
     printf("]\n");
     printf("OR\tH1\tH2\tDS\tCUSTO\n");
-    for(int i = 0; i < num_nos; i++){
-        for(int j = 0; i >= j; j++){
+    for (int i = 0; i < num_nos; i++)
+    {
+        for (int j = 0; i >= j; j++)
+        {
             printf("%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
         }
     }
 }
 
-void printaSolucaoArquivo(char* nome_arquivo){
-    FILE* arq = fopen(nome_arquivo, "a");
+void printaSolucaoArquivo(char *nome_arquivo)
+{
+    FILE *arq = fopen(nome_arquivo, "a");
 
-    if(arq == NULL){
+    if (arq == NULL)
+    {
         cout << "Erro ao abrir o arquivo para escrita" << endl;
     }
 
     fprintf(arq, "n: %d\tp: %d\n", num_nos, HUBS);
     fprintf(arq, "FO:\t%f\n", fo);
     fprintf(arq, "HUBS:\t[");
-    for(int i = 0; i < HUBS; i++){
+    for (int i = 0; i < HUBS; i++)
+    {
         fprintf(arq, "%d", hubs[i]);
-        if (i < HUBS - 1) {
+        if (i < HUBS - 1)
+        {
             fprintf(arq, ", ");
         }
     }
     fprintf(arq, "]\n");
     fprintf(arq, "OR\tH1\tH2\tDS\tCUSTO\n");
-    for(int i = 0; i < num_nos; i++){
-        for(int j = 0; i >= j; j++){
+    for (int i = 0; i < num_nos; i++)
+    {
+        for (int j = 0; i >= j; j++)
+        {
             fprintf(arq, "%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
         }
     }
@@ -289,14 +323,17 @@ void printaSolucaoArquivo(char* nome_arquivo){
     fclose(arq);
 }
 
-void clonar(Solucao& destino, const Solucao& origem) {
+void clonar(Solucao &destino, const Solucao &origem)
+{
     memcpy(&destino, &origem, sizeof(Solucao));
 }
 
-void leArquivoSolucao(char* nome_arquivo){
-    FILE* arq = fopen(nome_arquivo, "r");
+void leArquivoSolucao(char *nome_arquivo)
+{
+    FILE *arq = fopen(nome_arquivo, "r");
 
-    if(arq == NULL){
+    if (arq == NULL)
+    {
         cout << "Erro ao abrir o arquivo" << endl;
         return;
     }
@@ -309,7 +346,8 @@ void leArquivoSolucao(char* nome_arquivo){
     fscanf(arq, "FO:\t%f\n", &fo);
     fscanf(arq, "HUBS:\t[");
 
-    for (int i = 0; i < p; i++) {
+    for (int i = 0; i < p; i++)
+    {
         fscanf(arq, "%d,", &hubsTemp[i]);
     }
     fscanf(arq, " ]\n");
@@ -330,15 +368,14 @@ void leArquivoSolucao(char* nome_arquivo){
         solucao[origem][destino].caminho[2] = h2;
         solucao[origem][destino].caminho[3] = destino;
         solucao[origem][destino].fo = custo;
-
     }
 
     fclose(arq);
 }
 
-//Se o Nó origem é igual ao destino, vai ao hub mais próximo e volta - OK
-//Se o Nó origem é um hub, vai ao hub mais próximo e volta - OK
-//Se o Nó origem não é um hub, vai ao hub mais próximo verifica se o destino é mais proximo do hub, se for, vai ao hub, hub destino.
+// Se o Nó origem é igual ao destino, vai ao hub mais próximo e volta - OK
+// Se o Nó origem é um hub, vai ao hub mais próximo e volta - OK
+// Se o Nó origem não é um hub, vai ao hub mais próximo verifica se o destino é mais proximo do hub, se for, vai ao hub, hub destino.
 
 // void escolheHubsAleatoriaGulosa(){
 
