@@ -11,10 +11,15 @@ using namespace std;
 int main(){
 
     //le o arquivo de instancias
-    leArquivo("instances/inst200.txt");
+    leArquivo("instances/inst20.txt");
 
     //escolhe os hubs aleatorios
-    escolheHubs();
+    //escolheHubs();
+
+    hubs[0] = 3;
+    hubs[1] = 5;
+    hubs[2] = 13;
+    hubs[3] = 16;
 
     // procedimento de criação de solução (todos para todos)
     fo = 0;
@@ -90,6 +95,7 @@ float calculaFOPorCaminho(int* caminho){
     float fo = 0;
     for(int i = 0; i < 4; i++){
         for(int j = 1; j < 4; j++){
+            
             if(isHub(caminho[i]) && isHub(caminho[j])){
                 fo += distancia(coordenadas[caminho[i]], coordenadas[caminho[j]])*0.75;
             }
@@ -119,12 +125,24 @@ Solucao criaSolucao(int origem, int destino){
 
     if(origem == destino || isHub(origem)){
         caminho[0] = origem;
-        caminho[1] = caminho[2] = hubMaisProximo(origem);
+        caminho[1] = hubMaisProximo(origem);
+        caminho[2] = hubMaisProximo(origem);
         caminho[3] = destino;
     }
     if(isHub(destino)){
         caminho[0] = origem;
-        caminho[1] = caminho[2] = caminho[3] = destino;
+        if (hubMaisProximo(origem) == destino)
+        {
+            caminho[1] = caminho[2] = caminho[3] = destino;
+        }
+        else
+        {
+            caminho[1] = hubMaisProximo(origem);
+            caminho[2] = hubMaisProximo(destino);
+            caminho[3] = destino;
+        }
+        
+        
     }
     else{
         caminho[0] = origem;
