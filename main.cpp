@@ -24,7 +24,7 @@ int main(){
     // procedimento de criação de solução (todos para todos)
     fo = 0;
         for (int i = 0; i < num_nos; i++){
-            for (int j = 0; i >= j; j++){
+            for (int j = 0; j < num_nos; j++){
                 solucao[i][j] = criaSolucao(i, j);  
             }
         }
@@ -91,7 +91,7 @@ void escolheHubs(){
 }
 
 //calculo da FO
-float calculaFOPorCaminho(int* caminho){
+/*float calculaFOPorCaminho(int* caminho){
     float fo = 0;
     for(int i = 0; i < 4; i++){
         for(int j = 1; j < 4; j++){
@@ -104,6 +104,24 @@ float calculaFOPorCaminho(int* caminho){
             }
         }
     }
+    return fo;
+}*/
+
+float calculaFOPorCaminho(int* caminho) {
+    float fo = 0;
+
+    // Custo de coleta entre o nó de origem e o primeiro hub (β = 1)
+    float cik = distancia(coordenadas[caminho[0]], coordenadas[caminho[1]]);
+
+    // Custo de transferência entre os hubs (α = 0.75)
+    float ckl = distancia(coordenadas[caminho[1]], coordenadas[caminho[2]]);
+
+    // Custo de distribuição entre o segundo hub e o nó de destino (λ = 1)
+    float clj = distancia(coordenadas[caminho[2]], coordenadas[caminho[3]]);
+
+    // Cálculo do custo total
+    fo = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
+
     return fo;
 }
 
@@ -119,7 +137,7 @@ int isHub(int no){
 }
 
 //A partir dos nós selecionados como hub ele cria a solução viavel, ligando os nós não hub aos hubs
-Solucao criaSolucao(int origem, int destino){
+/*Solucao criaSolucao(int origem, int destino){
     int caminho[4];
     memset(caminho, -1, sizeof(caminho));
 
@@ -129,7 +147,7 @@ Solucao criaSolucao(int origem, int destino){
         caminho[2] = hubMaisProximo(origem);
         caminho[3] = destino;
     }
-    if(isHub(destino)){
+    else if(isHub(destino)){
         caminho[0] = origem;
         if (hubMaisProximo(origem) == destino)
         {
@@ -164,6 +182,49 @@ Solucao criaSolucao(int origem, int destino){
     solucao.caminho[3] = caminho[3];
 
     return solucao;
+}*/
+
+Solucao criaSolucao(int origem, int destino) {
+    int caminho[4];
+    memset(caminho, -1, sizeof(caminho));
+
+    float menorCusto = std::numeric_limits<float>::max();
+    int melhorHub1 = -1, melhorHub2 = -1;
+
+    // Testa todas as combinações de hubs
+    for (int k = 0; k < HUBS; k++) {
+        for (int l = 0; l < HUBS; l++) {
+            // Custo de coleta entre o nó de origem e o hub k (β = 1)
+            float cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
+            // Custo de transferência entre o hub k e o hub l (α = 0.75)
+            float ckl = distancia(coordenadas[hubs[k]], coordenadas[hubs[l]]);
+            // Custo de distribuição entre o hub l e o nó de destino (λ = 1)
+            float clj = distancia(coordenadas[hubs[l]], coordenadas[destino]);
+            // Custo total do caminho
+            float custoTotal = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
+
+            // Verifica se este caminho é o melhor até agora
+            if (custoTotal < menorCusto) {
+                menorCusto = custoTotal;
+                melhorHub1 = hubs[k];
+                melhorHub2 = hubs[l];
+            }
+        }
+    }
+
+    // Define o caminho com os melhores hubs encontrados
+    caminho[0] = origem;
+    caminho[1] = melhorHub1;
+    caminho[2] = melhorHub2;
+    caminho[3] = destino;
+
+    Solucao solucao;
+    solucao.caminho[0] = caminho[0];
+    solucao.caminho[1] = caminho[1];
+    solucao.caminho[2] = caminho[2];
+    solucao.caminho[3] = caminho[3];
+
+    return solucao;
 }
 
 //verifica o hub mais proximo do nó
@@ -187,7 +248,10 @@ void printaSolucaoConsole(){
     printf("FO:\t%f\n", fo);
     printf("HUBS:\t[");
     for(int i = 0; i < HUBS; i++){
-        printf("%d, ", hubs[i]);
+        printf("%d", hubs[i]);
+        if (i < HUBS - 1) {
+            printf(", ");
+        }
     }
     printf("]\n");
     printf("OR\tH1\tH2\tDS\tCUSTO\n");
@@ -209,7 +273,10 @@ void printaSolucaoArquivo(char* nome_arquivo){
     fprintf(arq, "FO:\t%f\n", fo);
     fprintf(arq, "HUBS:\t[");
     for(int i = 0; i < HUBS; i++){
-        fprintf(arq, "%d, ", hubs[i]);
+        fprintf(arq, "%d", hubs[i]);
+        if (i < HUBS - 1) {
+            fprintf(arq, ", ");
+        }
     }
     fprintf(arq, "]\n");
     fprintf(arq, "OR\tH1\tH2\tDS\tCUSTO\n");
