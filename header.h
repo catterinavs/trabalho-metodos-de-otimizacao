@@ -44,3 +44,11 @@ void printaSolucaoArquivo(char* nome_arquivo);
 void printaSolucaoConsole();
 
 void leArquivoSolucao(char* nome_arquivo);
+
+void buscaLocal();
+
+void grasp(int maxIteracoes);
+
+float calculaFO();
+
+float calculaCustoMinimo(int origem, int destino);

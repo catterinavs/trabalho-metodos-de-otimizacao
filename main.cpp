@@ -15,13 +15,13 @@ int main()
     leArquivo("instances/inst20.txt");
 
     // escolhe aleatoriamente os hubs que serão usados na solução
-    // escolheHubs();
+    escolheHubs();
 
     //Verifica se está funcionando com os melhores hubs
-    hubs[0] = 3;
+    /*hubs[0] = 3;
     hubs[1] = 5;
     hubs[2] = 13;
-    hubs[3] = 16;
+    hubs[3] = 16;*/
 
     // procedimento de criação de solução (todos para todos)
     fo = 0;
@@ -45,6 +45,10 @@ int main()
             }
         }
     }
+
+
+    int maxIteracoes = 10; // Número de iterações do GRASP
+    grasp(maxIteracoes);
 
     // printa soluções
     printaSolucaoConsole();
@@ -282,4 +286,100 @@ void leArquivoSolucao(char *nome_arquivo)
     }
 
     fclose(arq);
+}
+
+
+//grasp
+
+
+void buscaLocal() {
+    float melhorFO = fo;
+    int melhorHubs[HUBS];
+    memcpy(melhorHubs, hubs, sizeof(hubs));
+
+    // Tenta trocar cada hub
+    for (int i = 0; i < HUBS; i++) {
+        int hubOriginal = hubs[i];
+        for (int j = 0; j < num_nos; j++) {
+            if (isHub(j)) continue; // Ignora nós que já são hubs
+            hubs[i] = j; // Tenta trocar o hub
+            float novaFO = calculaFO();
+            if (novaFO < melhorFO) {
+                melhorFO = novaFO;
+                memcpy(melhorHubs, hubs, sizeof(hubs));
+            }
+        }
+        hubs[i] = hubOriginal; // Restaura o hub original
+    }
+
+    // Atualiza a solução se encontrou uma melhoria
+    if (melhorFO < fo) {
+        fo = melhorFO;
+        memcpy(hubs, melhorHubs, sizeof(hubs));
+    }
+}
+
+
+void grasp(int maxIteracoes) {
+    float melhorFO = fo;
+    int melhorHubs[HUBS];
+    memcpy(melhorHubs, hubs, sizeof(hubs));
+
+    for (int iter = 0; iter < maxIteracoes; iter++) {
+        // Fase de busca local
+        buscaLocal();
+        printf("%d", iter);
+        // Atualiza a melhor solução encontrada
+        if (fo < melhorFO) {
+            melhorFO = fo;
+            memcpy(melhorHubs, hubs, sizeof(hubs));
+        }
+
+        // Perturba a solução atual para diversificar
+        int hub1 = rand() % HUBS;
+        int hub2 = rand() % HUBS;
+        std::swap(hubs[hub1], hubs[hub2]);
+    }
+
+    // Restaura a melhor solução encontrada
+    fo = melhorFO;
+    memcpy(hubs, melhorHubs, sizeof(hubs));
+}
+
+float calculaFO() {
+    float fo = 0;
+    for (int i = 0; i < num_nos; i++) {
+        for (int j = 0; j < num_nos; j++) {
+            float custo = calculaCustoMinimo(i, j);
+            if (custo > fo) {
+                fo = custo;
+            }
+        }
+    }
+    return fo;
+}
+
+float calculaCustoMinimo(int origem, int destino){
+    float custoMinimo = std::numeric_limits<float>::max();
+    for (int k = 0; k < HUBS; k++) {
+        for (int l = 0; l < HUBS; l++) {
+            float cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
+            float ckl = distancia(coordenadas[hubs[k]], coordenadas[hubs[l]]);
+            float clj = distancia(coordenadas[hubs[l]], coordenadas[destino]);
+            float custoTotal = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
+            if (custoTotal < custoMinimo) {
+                custoMinimo = custoTotal;
+            }
+        }
+    }
+    return custoMinimo;
+}
+
+int isHub(int no) {
+    for (int i = 0; i < HUBS; i++) {
+        if (hubs[i] == no) {
+            return 1;
+        }
+    }
+    return 0;
 }
