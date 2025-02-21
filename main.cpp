@@ -14,9 +14,10 @@ int main()
     // le o arquivo de instancias
     leArquivo("instances/inst20.txt");
 
-    // escolhe os hubs aleatorios
+    // escolhe aleatoriamente os hubs que serão usados na solução
     // escolheHubs();
 
+    //Verifica se está funcionando com os melhores hubs
     hubs[0] = 3;
     hubs[1] = 5;
     hubs[2] = 13;
@@ -103,139 +104,68 @@ void escolheHubs()
     }
 }
 
-// calculo da FO
-/*float calculaFOPorCaminho(int* caminho){
-    float fo = 0;
-    for(int i = 0; i < 4; i++){
-        for(int j = 1; j < 4; j++){
-
-            if(isHub(caminho[i]) && isHub(caminho[j])){
-                fo += distancia(coordenadas[caminho[i]], coordenadas[caminho[j]])*0.75;
-            }
-            else{
-                fo += distancia(coordenadas[caminho[i]], coordenadas[caminho[j]]);
-            }
-        }
-    }
-    return fo;
-}*/
-
+//calcula a FO entre dois nós nós não hubs i e j passar por pelo menos um hub k e l podendo ser k = l
 float calculaFOPorCaminho(int *caminho)
 {
     float fo = 0;
 
-    // Custo de coleta entre o nó de origem e o primeiro hub (β = 1)
+    //custo de trandsfêrencia entre o nó de origem e o primeiro hub
     float cik = distancia(coordenadas[caminho[0]], coordenadas[caminho[1]]);
 
-    // Custo de transferência entre os hubs (α = 0.75)
+    //custo de transferência entre os hubs
     float ckl = distancia(coordenadas[caminho[1]], coordenadas[caminho[2]]);
 
-    // Custo de distribuição entre o segundo hub e o nó de destino (λ = 1)
+    //custo de transferência entre o segundo hub e o nó de destino
     float clj = distancia(coordenadas[caminho[2]], coordenadas[caminho[3]]);
 
-    // Cálculo do custo total
+    //cálculo do custo total
     fo = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
 
     return fo;
 }
-
-// verifica se um nó é hub
-int isHub(int no)
-{
-    for (int i = 0; i < HUBS; i++)
-    {
-        if (hubs[i] == no)
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-// A partir dos nós selecionados como hub ele cria a solução viavel, ligando os nós não hub aos hubs
-/*Solucao criaSolucao(int origem, int destino){
-    int caminho[4];
-    memset(caminho, -1, sizeof(caminho));
-
-    if(origem == destino || isHub(origem)){
-        caminho[0] = origem;
-        caminho[1] = hubMaisProximo(origem);
-        caminho[2] = hubMaisProximo(origem);
-        caminho[3] = destino;
-    }
-    else if(isHub(destino)){
-        caminho[0] = origem;
-        if (hubMaisProximo(origem) == destino)
-        {
-            caminho[1] = caminho[2] = caminho[3] = destino;
-        }
-        else
-        {
-            caminho[1] = hubMaisProximo(origem);
-            caminho[2] = hubMaisProximo(destino);
-            caminho[3] = destino;
-        }
-
-
-    }
-    else{
-        caminho[0] = origem;
-        caminho[1] = hubMaisProximo(origem);
-        if(distancia(coordenadas[hubMaisProximo(caminho[1])], coordenadas[destino]) < distancia(coordenadas[caminho[1]], coordenadas[destino])){
-            caminho[2] = hubMaisProximo(caminho[1]);
-            caminho[3] = destino;
-        }
-        else{
-            caminho[2] = hubMaisProximo(origem);
-            caminho[3] = destino;
-        }
-    }
-
-    Solucao solucao;
-    solucao.caminho[0] = caminho[0];
-    solucao.caminho[1] = caminho[1];
-    solucao.caminho[2] = caminho[2];
-    solucao.caminho[3] = caminho[3];
-
-    return solucao;
-}*/
 
 Solucao criaSolucao(int origem, int destino)
 {
     int caminho[4];
     memset(caminho, -1, sizeof(caminho));
 
+    //inicia o float no maior valor possivel para pegar sempre valores menores
     float menorCusto = std::numeric_limits<float>::max();
-    int melhorHub1 = -1, melhorHub2 = -1;
 
-    // Testa todas as combinações de hubs
+    int melhorHubL = -1, melhorHubK = -1;
+    float cik, ckl, clj, custoTotal;
+
+    //testa todas as combinações de hubs
     for (int k = 0; k < HUBS; k++)
     {
         for (int l = 0; l < HUBS; l++)
         {
-            // Custo de coleta entre o nó de origem e o hub k (β = 1)
-            float cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
-            // Custo de transferência entre o hub k e o hub l (α = 0.75)
-            float ckl = distancia(coordenadas[hubs[k]], coordenadas[hubs[l]]);
-            // Custo de distribuição entre o hub l e o nó de destino (λ = 1)
-            float clj = distancia(coordenadas[hubs[l]], coordenadas[destino]);
-            // Custo total do caminho
-            float custoTotal = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
+            //custo de tranferencia entre o nó de origem e o primeiro hub (k) 
+            cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
 
-            // Verifica se este caminho é o melhor até agora
+            //custo de transferência entre os hubs (k e l)
+            ckl = distancia(coordenadas[hubs[k]], coordenadas[hubs[l]]);
+
+            //custo de tranferencia entre o segundo hub (l) e o nó de destino
+            clj = distancia(coordenadas[hubs[l]], coordenadas[destino]);
+
+            //custo total do caminho
+            custoTotal = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
+
+            //verifica se este caminho é o melhor até agora
             if (custoTotal < menorCusto)
             {
                 menorCusto = custoTotal;
-                melhorHub1 = hubs[k];
-                melhorHub2 = hubs[l];
+                melhorHubL = hubs[k];
+                melhorHubK = hubs[l];
             }
         }
     }
 
-    // Define o caminho com os melhores hubs encontrados
+    //define o melhor caminho com os hubs selecionados
     caminho[0] = origem;
-    caminho[1] = melhorHub1;
-    caminho[2] = melhorHub2;
+    caminho[1] = melhorHubL;
+    caminho[2] = melhorHubK;
     caminho[3] = destino;
 
     Solucao solucao;
@@ -245,25 +175,6 @@ Solucao criaSolucao(int origem, int destino)
     solucao.caminho[3] = caminho[3];
 
     return solucao;
-}
-
-// verifica o hub mais proximo do nó
-int hubMaisProximo(int pontoOrigem)
-{
-    int hubMaisProximo = -1;
-    double distanciaMinima = std::numeric_limits<double>::max();
-
-    for (int i = 0; i < HUBS; i++)
-    {
-        double dist = distancia(coordenadas[pontoOrigem], coordenadas[hubs[i]]);
-        if (dist < distanciaMinima)
-        {
-            distanciaMinima = dist;
-            hubMaisProximo = hubs[i];
-        }
-    }
-
-    return hubMaisProximo;
 }
 
 void printaSolucaoConsole()
@@ -372,56 +283,3 @@ void leArquivoSolucao(char *nome_arquivo)
 
     fclose(arq);
 }
-
-// Se o Nó origem é igual ao destino, vai ao hub mais próximo e volta - OK
-// Se o Nó origem é um hub, vai ao hub mais próximo e volta - OK
-// Se o Nó origem não é um hub, vai ao hub mais próximo verifica se o destino é mais proximo do hub, se for, vai ao hub, hub destino.
-
-// void escolheHubsAleatoriaGulosa(){
-
-//     double distancia_total_x = 0;
-//     double distancia_total_y = 0;
-
-//     for(int i = 0; i < num_nos; i++){
-//         distancia_total_x += coordenadas[i].x;
-//         distancia_total_y += coordenadas[i].y;
-//     }
-
-//     Coord ponto_central;
-
-//     ponto_central.x = distancia_total_x/num_nos;
-//     ponto_central.y = distancia_total_y/num_nos;
-
-//     printf("Ponto central: %f %f\n", ponto_central.x, ponto_central.y);
-
-//     double x_min = ponto_central.x - ponto_central.x*range_escolha_pontos;
-//     double x_max = ponto_central.x + ponto_central.x*range_escolha_pontos;
-
-//     double y_min = ponto_central.y - ponto_central.y*range_escolha_pontos;
-//     double y_max = ponto_central.y + ponto_central.y*range_escolha_pontos;
-
-//     int vetor_pontos_candidatos[num_nos];
-
-//     memset(vetor_pontos_candidatos, -1, sizeof(vetor_pontos_candidatos));
-
-//     for(int i = 0; i < num_nos; i++){
-//         if(coordenadas[i].x <= x_min && coordenadas[i].x >= x_max && coordenadas[i].y <= y_min && coordenadas[i].y >= y_max){
-//             vetor_pontos_candidatos[i] = i;
-//         }
-//     }
-
-//     int i = 0;
-//     int j = 0;
-
-//     while(i < HUBS){
-//         j = rand() % num_nos;
-//         if(vetor_pontos_candidatos[j] != -1){
-//             hubs[i] = vetor_pontos_candidatos[j];
-//             vetor_pontos_candidatos[j] = -1;
-//             i++;
-//         }
-//     }
-//     qsort(hubs, HUBS, sizeof(int), [](const void* a, const void* b) -> int {
-//         return *(int*)a - *(int*)b;
-//     });
-// }
