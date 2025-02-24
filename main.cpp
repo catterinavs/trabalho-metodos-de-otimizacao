@@ -8,6 +8,26 @@
 
 using namespace std;
 
+/*
+
+- int vet[4] - exemplo;
+- não usar funções retornando tipos composto,  (preferir usar void) ex:
+Solucao funcao(){}
+- preferir passar parametros para função como endereço de memória -> &valor;
+- usar srand() uma vez no main;
+- só usar o srand após terminar;
+- usar memcpy apenas com variáveis estáticas (não usar com ponateiro);
+- usar ifdef
+- não declarar variáveis dentro de loop
+
+
+- fazer uma matriz de distâncias calculada no início;
+- fazer um struct para uma solução;
+- não usar número de hubs e nos dentro da solução; 
+- não usar matriz dentro da solução;
+
+*/
+
 int main(){
 
     //le o arquivo de instancias
