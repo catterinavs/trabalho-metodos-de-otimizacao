@@ -1,7 +1,7 @@
-#define MAX_PONTOS 200
+
 
 //Quantidade de hubs
-#define HUBS 4
+
 
 typedef struct coord{
     float x;
@@ -13,17 +13,6 @@ typedef struct solucao{
     float fo;
 }Solucao; 
 
-int num_nos = 0;
-int hubs[HUBS];
-Solucao solucao[200][200];
-
-float matriz_distancias[MAX_PONTOS][MAX_PONTOS];
-
-// float range_escolha_pontos = 0.5;
-
-float fo = 0;
-
-Coord coordenadas[MAX_PONTOS];
 
 void leArquivo(char* nome_arquivo);
 
@@ -46,3 +35,5 @@ void printaSolucaoArquivo(char* nome_arquivo);
 void printaSolucaoConsole();
 
 void leArquivoSolucao(char* nome_arquivo);
+
+void calculaMatrizDistancias();

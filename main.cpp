@@ -8,25 +8,38 @@
 
 using namespace std;
 
+#define HUBS 4
+
+#define MAX_PONTOS 200
+
 /*
 - Matriz de soluções desnecessária
 - fo global desnecessária
 - Função retornando tipos compostos (Solucao)
 - A estrutura solução não é usada na construtiva, cálculo de FO, etc.
-- Cálculo de FO incorreto.
+- X Cálculo de FO incorreto.
 - Ler solução não "carrega" uma solução
-- Número de hubs deveria estar parametrizado no .cpp
-- srand não deve ser usado dentro de métodos (apenas no main)
+- X Número de hubs deveria estar parametrizado no .cpp
+- X srand não deve ser usado dentro de métodos (apenas no main)
 */
+
+int num_nos = 0;
+int hubs[HUBS];
+Solucao solucao[200][200];
+
+float matriz_distancias[MAX_PONTOS][MAX_PONTOS];
+Coord coordenadas[MAX_PONTOS];
+float fo = 0;
 
 int main()
 {
 
-    calculaMatrizDistancias();
+    srand(time(NULL));
 
     // le o arquivo de instancias
     leArquivo("instances/inst20.txt");
-
+    
+    calculaMatrizDistancias();
     // escolhe aleatoriamente os hubs que serão usados na solução
     // escolheHubs();
 
@@ -37,7 +50,7 @@ int main()
     hubs[3] = 16;
 
     // procedimento de criação de solução (todos para todos)
-    fo = 0;
+    
     for (int i = 0; i < num_nos; i++)
     {
         for (int j = 0; j < num_nos; j++)
@@ -96,7 +109,6 @@ float distancia(Coord a, Coord b)
 // escolhe aletaoriamente os hubs que serão utilizados
 void escolheHubs()
 {
-    srand(time(NULL));
 
     for (int i = 0; i < HUBS; i++)
     {
@@ -117,7 +129,7 @@ void escolheHubs()
     }
 }
 
-//calcula a FO entre dois nós nós não hubs i e j passar por pelo menos um hub k e l podendo ser k = l
+//calcula a FO entre dois nós não hubs i e j passar por pelo menos um hub k e l podendo ser k = l
 float calculaFOPorCaminho(int *caminho)
 {
     float fo = 0;
