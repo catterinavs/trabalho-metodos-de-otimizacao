@@ -14,6 +14,8 @@ typedef struct solucao{
 }Solucao; 
 
 
+
+
 void leArquivo(char* nome_arquivo);
 
 float distancia(Coord a, Coord b);

@@ -12,6 +12,11 @@ using namespace std;
 
 #define MAX_PONTOS 200
 
+typedef struct arqsolucao{
+    int hubs[HUBS];
+    float fo;
+}ArqSolucao;
+
 /*
 - Matriz de soluções desnecessária
 - fo global desnecessária
@@ -267,7 +272,7 @@ void clonar(Solucao &destino, const Solucao &origem)
     memcpy(&destino, &origem, sizeof(Solucao));
 }
 
-void leArquivoSolucao(char *nome_arquivo)
+void leArquivoSolucao(char *nome_arquivo, ArqSolucao* solucao)
 {
     FILE *arq = fopen(nome_arquivo, "r");
 
@@ -278,35 +283,14 @@ void leArquivoSolucao(char *nome_arquivo)
     }
 
     int n, p;
-    float fo;
-    int hubsTemp[HUBS];
 
     fscanf(arq, "n: %d\tp: %d\n", &n, &p);
-    fscanf(arq, "FO:\t%f\n", &fo);
+    fscanf(arq, "FO:\t%f\n", &solucao->fo);
     fscanf(arq, "HUBS:\t[");
 
     for (int i = 0; i < p; i++)
     {
-        fscanf(arq, "%d,", &hubsTemp[i]);
-    }
-    fscanf(arq, " ]\n");
-    fscanf(arq, "OR\t	H1\t	H2\t	DS\t	CUSTO\t\n");
-
-    num_nos = n;
-    fo = fo;
-
-    while (!feof(arq))
-    {
-        int origem, h1, h2, destino;
-        float custo;
-
-        fscanf(arq, "%d\t%d\t%d\t%d\t%f\n", &origem, &h1, &h2, &destino, &custo);
-
-        solucao[origem][destino].caminho[0] = origem;
-        solucao[origem][destino].caminho[1] = h1;
-        solucao[origem][destino].caminho[2] = h2;
-        solucao[origem][destino].caminho[3] = destino;
-        solucao[origem][destino].fo = custo;
+        fscanf(arq, "%d,", &solucao->hubs[i]);
     }
 
     fclose(arq);
