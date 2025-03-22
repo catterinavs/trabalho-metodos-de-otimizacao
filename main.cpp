@@ -8,9 +8,12 @@
 
 using namespace std;
 
-#define HUBS 4
+#define HUBS 50
 
 #define MAX_PONTOS 200
+
+// #define PRINT
+// #define PRINTA_CAMINHOS
 
 typedef struct solucao
 {
@@ -19,37 +22,42 @@ typedef struct solucao
 } Solucao;
 
 int num_nos = 0;
-int hubs[HUBS];
 Solucao solucao[200][200];
 
 float matriz_distancias[MAX_PONTOS][MAX_PONTOS];
 Coord coordenadas[MAX_PONTOS];
 float fo = 0;
 
-void criaSolucao(Solucao *solucao);
+void criaSolucao(Solucao *solucao, int *hubs);
 void printaSolucaoArquivo(char *nome_arquivo, Solucao *solucao);
 
 int main()
 {
-
     srand(time(NULL));
 
     // le o arquivo de instancias
-    leArquivo("instances/inst20.txt");
+    leArquivo("instances/inst200.txt");
 
     calculaMatrizDistancias();
     // escolhe aleatoriamente os hubs que serão usados na solução
-    // escolheHubs();
+
+    int hubs[HUBS];
+    escolheHubs(hubs);
 
     // Verifica se está funcionando com os melhores hubs
-    hubs[0] = 3;
-    hubs[1] = 5;
-    hubs[2] = 13;
-    hubs[3] = 16;
+    // hubs[0] = 3;
+    // hubs[1] = 5;
+    // hubs[2] = 13;
+    // hubs[3] = 16;
     
     Solucao solucao;
 
-    criaSolucao(&solucao);
+    criaSolucao(&solucao, hubs);
+
+    #ifdef PRINT
+        printf("FO: %f\n", solucao.fo);
+    #endif
+
     printaSolucaoArquivo("sol.txt", &solucao);
     
     return 0;
@@ -83,7 +91,7 @@ float distancia(Coord a, Coord b)
 }
 
 // escolhe aletaoriamente os hubs que serão utilizados
-void escolheHubs()
+void escolheHubs(int* hubs)
 {
 
     for (int i = 0; i < HUBS; i++)
@@ -105,7 +113,7 @@ void escolheHubs()
     }
 }
 
-void criaSolucao(Solucao *solucao)
+void criaSolucao(Solucao *solucao, int *hubs)
 {
     float menorCusto = std::numeric_limits<float>::max();
     solucao->fo = 0;
@@ -116,6 +124,22 @@ void criaSolucao(Solucao *solucao)
     for(int i = 0; i < HUBS; i++){
         solucao->hubs[i] = hubs[i];
     }
+
+    #ifdef PRINT
+        printf("n: %d\tp: %d\n", num_nos, HUBS);
+        printf("FO:\t%f\n", fo);
+        printf("HUBS:\t[");
+        for (int i = 0; i < HUBS; i++)
+        {
+            printf("%d", hubs[i]);
+            if (i < HUBS - 1)
+            {
+                printf(", ");
+            }
+        }
+        printf("]\n");
+        printf("OR\tH1\tH2\tDS\tCUSTO\n");
+    #endif
 
     //Verifica todos os nós
     for (int i = 0; i < num_nos; i++)
@@ -161,6 +185,9 @@ void criaSolucao(Solucao *solucao)
             if(menorCusto > solucao->fo){
                 solucao->fo = menorCusto;
             }
+            #ifdef PRINTA_CAMINHOS
+                printf("%d\t%d\t%d\t%d\t%f\n", i, melhorHubK, melhorHubL, j, menorCusto);
+            #endif
         }
     }
 }

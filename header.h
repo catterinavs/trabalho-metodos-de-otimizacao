@@ -9,7 +9,7 @@ void leArquivo(char* nome_arquivo);
 
 float distancia(Coord a, Coord b);
 
-void escolheHubs();
+void escolheHubs(int *hubs);
 
 float calculaFOPorCaminho(int* caminho);
 
