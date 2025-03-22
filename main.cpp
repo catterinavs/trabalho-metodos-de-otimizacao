@@ -19,14 +19,14 @@ typedef struct solucao
 } Solucao;
 
 /*
-- Matriz de soluções desnecessária
-- fo global desnecessária
-- Função retornando tipos compostos (Solucao)
-- A estrutura solução não é usada na construtiva, cálculo de FO, etc.
-- X Cálculo de FO incorreto.
-- Ler solução não "carrega" uma solução
-- X Número de hubs deveria estar parametrizado no .cpp
-- X srand não deve ser usado dentro de métodos (apenas no main)
+- X     Matriz de soluções desnecessária
+- X     fo global desnecessária
+- X     Função retornando tipos compostos (Solucao)
+-       A estrutura solução não é usada na construtiva, cálculo de FO, etc.
+- X     Cálculo de FO incorreto.
+-       Ler solução não "carrega" uma solução
+- X     Número de hubs deveria estar parametrizado no .cpp
+- X     srand não deve ser usado dentro de métodos (apenas no main)
 */
 
 int num_nos = 0;
@@ -153,6 +153,16 @@ void criaSolucao(Solucao *solucao)
         for (int j = 0; j < num_nos; j++)
         {
             // testa todas as combinações de hubs
+
+            melhorHubK = -1;
+            melhorHubL = -1;
+            menorCusto = std::numeric_limits<float>::max();
+            cik = 0;
+            ckl = 0;
+            clj = 0;
+            custoTotal = 0;
+
+
             for (int k = 0; k < HUBS; k++)
             {
                 for (int l = 0; l < HUBS; l++)
@@ -181,10 +191,9 @@ void criaSolucao(Solucao *solucao)
                     }
                 }
             }
-            if(custoTotal > solucao->fo){
-                solucao->fo = custoTotal;
+            if(menorCusto > solucao->fo){
+                solucao->fo = menorCusto;
             }
-            printf("Origem: %d\tDestino: %d\tCusto: %f\n", i, j, custoTotal);
         }
     }
 }
