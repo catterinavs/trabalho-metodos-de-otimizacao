@@ -8,8 +8,21 @@
 
 using namespace std;
 
+/*
+- Matriz de soluções desnecessária
+- fo global desnecessária
+- Função retornando tipos compostos (Solucao)
+- A estrutura solução não é usada na construtiva, cálculo de FO, etc.
+- Cálculo de FO incorreto.
+- Ler solução não "carrega" uma solução
+- Número de hubs deveria estar parametrizado no .cpp
+- srand não deve ser usado dentro de métodos (apenas no main)
+*/
+
 int main()
 {
+
+    calculaMatrizDistancias();
 
     // le o arquivo de instancias
     leArquivo("instances/inst20.txt");
@@ -141,13 +154,16 @@ Solucao criaSolucao(int origem, int destino)
         for (int l = 0; l < HUBS; l++)
         {
             //custo de tranferencia entre o nó de origem e o primeiro hub (k) 
-            cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
+            //cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
+            cik = matriz_distancias[origem][hubs[k]];
 
             //custo de transferência entre os hubs (k e l)
-            ckl = distancia(coordenadas[hubs[k]], coordenadas[hubs[l]]);
+            //ckl = distancia(coordenadas[hubs[k]], coordenadas[hubs[l]]);
+            ckl = matriz_distancias[hubs[k]][hubs[l]];
 
             //custo de tranferencia entre o segundo hub (l) e o nó de destino
-            clj = distancia(coordenadas[hubs[l]], coordenadas[destino]);
+            //clj = distancia(coordenadas[hubs[l]], coordenadas[destino]);
+            clj = matriz_distancias[hubs[l]][destino];
 
             //custo total do caminho
             custoTotal = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
@@ -282,4 +298,14 @@ void leArquivoSolucao(char *nome_arquivo)
     }
 
     fclose(arq);
+}
+
+void calculaMatrizDistancias(){
+    for (int i = 0; i < num_nos; i++)
+    {
+        for (int j = 0; j < num_nos; j++)
+        {
+            matriz_distancias[i][j] = distancia(coordenadas[i], coordenadas[j]);
+        }
+    }
 }
