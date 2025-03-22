@@ -18,17 +18,6 @@ typedef struct solucao
     float fo;
 } Solucao;
 
-/*
-- X     Matriz de soluções desnecessária
-- X     fo global desnecessária
-- X     Função retornando tipos compostos (Solucao)
--       A estrutura solução não é usada na construtiva, cálculo de FO, etc.
-- X     Cálculo de FO incorreto.
--       Ler solução não "carrega" uma solução
-- X     Número de hubs deveria estar parametrizado no .cpp
-- X     srand não deve ser usado dentro de métodos (apenas no main)
-*/
-
 int num_nos = 0;
 int hubs[HUBS];
 Solucao solucao[200][200];
@@ -116,26 +105,6 @@ void escolheHubs()
     }
 }
 
-// // calcula a FO entre dois nós não hubs i e j passar por pelo menos um hub k e l podendo ser k = l
-// void calculaFOPorCaminho(int *caminho)
-// {
-//     float fo = 0;
-
-//     // custo de trandsfêrencia entre o nó de origem e o primeiro hub
-//     float cik = distancia(coordenadas[caminho[0]], coordenadas[caminho[1]]);
-
-//     // custo de transferência entre os hubs
-//     float ckl = distancia(coordenadas[caminho[1]], coordenadas[caminho[2]]);
-
-//     // custo de transferência entre o segundo hub e o nó de destino
-//     float clj = distancia(coordenadas[caminho[2]], coordenadas[caminho[3]]);
-
-//     // cálculo do custo total
-//     fo = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
-
-//     return fo;
-// }
-
 void criaSolucao(Solucao *solucao)
 {
     float menorCusto = std::numeric_limits<float>::max();
@@ -148,12 +117,12 @@ void criaSolucao(Solucao *solucao)
         solucao->hubs[i] = hubs[i];
     }
 
+    //Verifica todos os nós
     for (int i = 0; i < num_nos; i++)
     {
+        //Lembrar de verificar somente a metade dos nós
         for (int j = 0; j < num_nos; j++)
         {
-            // testa todas as combinações de hubs
-
             melhorHubK = -1;
             melhorHubL = -1;
             menorCusto = std::numeric_limits<float>::max();
@@ -162,21 +131,18 @@ void criaSolucao(Solucao *solucao)
             clj = 0;
             custoTotal = 0;
 
-
+            // testa todas as combinações de hubs
             for (int k = 0; k < HUBS; k++)
             {
                 for (int l = 0; l < HUBS; l++)
                 {
                     // custo de tranferencia entre o nó de origem e o primeiro hub (k)
-                    // cik = distancia(coordenadas[origem], coordenadas[hubs[k]]);
                     cik = matriz_distancias[i][hubs[k]];
 
                     // custo de transferência entre os hubs (k e l)
-                    // ckl = distancia(coordenadas[hubs[k]], coordenadas[hubs[l]]);
                     ckl = matriz_distancias[hubs[k]][hubs[l]];
 
                     // custo de tranferencia entre o segundo hub (l) e o nó de destino
-                    // clj = distancia(coordenadas[hubs[l]], coordenadas[destino]);
                     clj = matriz_distancias[hubs[l]][j];
 
                     // custo total do caminho
@@ -191,6 +157,7 @@ void criaSolucao(Solucao *solucao)
                     }
                 }
             }
+            // Salva a maior fo (maior dos menores)
             if(menorCusto > solucao->fo){
                 solucao->fo = menorCusto;
             }
@@ -198,30 +165,7 @@ void criaSolucao(Solucao *solucao)
     }
 }
 
-// void printaSolucaoConsole()
-// {
-//     printf("n: %d\tp: %d\n", num_nos, HUBS);
-//     printf("FO:\t%f\n", fo);
-//     printf("HUBS:\t[");
-//     for (int i = 0; i < HUBS; i++)
-//     {
-//         printf("%d", hubs[i]);
-//         if (i < HUBS - 1)
-//         {
-//             printf(", ");
-//         }
-//     }
-//     printf("]\n");
-//     printf("OR\tH1\tH2\tDS\tCUSTO\n");
-//     for (int i = 0; i < num_nos; i++)
-//     {
-//         for (int j = 0; i >= j; j++)
-//         {
-//             printf("%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
-//         }
-//     }
-// }
-
+//mexer kkkkkk
 void printaSolucaoArquivo(char *nome_arquivo, Solucao *solucao)
 {
     FILE *arq = fopen(nome_arquivo, "a");
@@ -285,3 +229,28 @@ void calculaMatrizDistancias()
         }
     }
 }
+
+// mexer kkkkkk
+// void printaSolucaoConsole()
+// {
+//     printf("n: %d\tp: %d\n", num_nos, HUBS);
+//     printf("FO:\t%f\n", fo);
+//     printf("HUBS:\t[");
+//     for (int i = 0; i < HUBS; i++)
+//     {
+//         printf("%d", hubs[i]);
+//         if (i < HUBS - 1)
+//         {
+//             printf(", ");
+//         }
+//     }
+//     printf("]\n");
+//     printf("OR\tH1\tH2\tDS\tCUSTO\n");
+//     for (int i = 0; i < num_nos; i++)
+//     {
+//         for (int j = 0; i >= j; j++)
+//         {
+//             printf("%d\t%d\t%d\t%d\t%f\n", solucao[i][j].caminho[0], solucao[i][j].caminho[1], solucao[i][j].caminho[2], solucao[i][j].caminho[3], solucao[i][j].fo);
+//         }
+//     }
+// }
