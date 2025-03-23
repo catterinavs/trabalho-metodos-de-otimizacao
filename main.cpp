@@ -56,7 +56,7 @@ int main()
 
     Solucao solucao;
 
-    int execucoes = 1000;
+    int execucoes = 100;
     grasp(execucoes, &solucao);
 
     printaSolucaoArquivo("sol.txt", &solucao);
@@ -218,6 +218,35 @@ void printaSolucaoArquivo(char *nome_arquivo, Solucao *solucao)
         }
     }
     fprintf(arq, "]\n");
+
+    //print caminhos
+    fprintf(arq, "OR\tH1\tH2\tDS\tCUSTO\n");
+    for (int i = 0; i < num_nos; i++) {
+
+        for (int j = 0; j < num_nos; j++) {
+
+            float menorCusto = std::numeric_limits<float>::max();
+            
+            int H1 = -1, H2 = -1;
+
+            // Encontra o melhor caminho para o par (i,j)
+            for (int k = 0; k < HUBS; k++) {
+                for (int l = 0; l < HUBS; l++) {
+                    float custo = 1.0 * matriz_distancias[i][solucao->hubs[k]] 
+                                + 0.75 * matriz_distancias[solucao->hubs[k]][solucao->hubs[l]] 
+                                + 1.0 * matriz_distancias[solucao->hubs[l]][j];
+                    
+                    if (custo < menorCusto) {
+                        menorCusto = custo;
+                        H1 = solucao->hubs[k];
+                        H2 = solucao->hubs[l];
+                    }
+                }
+            }
+            fprintf(arq, "%d\t%d\t%d\t%d\t%f\n", i, H1, H2, j, menorCusto);
+        }
+    }
+
     fclose(arq);
 }
 
@@ -275,6 +304,34 @@ void printaSolucaoConsole(Solucao *solucao)
         }
     }
     printf("]\n");
+
+    printf("OR\tH1\tH2\tDS\tCUSTO\n");
+    for (int i = 0; i < num_nos; i++) {
+
+        for (int j = 0; j < num_nos; j++) {
+
+            float menorCusto = std::numeric_limits<float>::max();
+
+            int H1 = -1, H2 = -1;
+
+            // Encontra o melhor caminho para o par (i,j)
+            for (int k = 0; k < HUBS; k++) {
+                for (int l = 0; l < HUBS; l++) {
+                    float custo = 1.0 * matriz_distancias[i][solucao->hubs[k]] 
+                                + 0.75 * matriz_distancias[solucao->hubs[k]][solucao->hubs[l]] 
+                                + 1.0 * matriz_distancias[solucao->hubs[l]][j];
+                    
+                    if (custo < menorCusto) {
+                        menorCusto = custo;
+                        H1 = solucao->hubs[k];
+                        H2 = solucao->hubs[l];
+                    }
+                }
+            }
+            printf("%d\t%d\t%d\t%d\t%f\n", i, H1, H2, j, menorCusto);
+        }
+    }
+
 }
 
 // GRASP
