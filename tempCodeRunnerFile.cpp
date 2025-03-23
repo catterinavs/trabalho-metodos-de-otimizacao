@@ -1,1 +1,0 @@
-void clonarSolucao(Solucao *destino, Solucao *origem)
