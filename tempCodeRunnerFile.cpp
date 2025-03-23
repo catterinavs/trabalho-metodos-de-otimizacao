@@ -1,1 +1,1 @@
-float calculaCustoMinimo(int origem, int destino) 
+void clonarSolucao(Solucao *destino, Solucao *origem)
