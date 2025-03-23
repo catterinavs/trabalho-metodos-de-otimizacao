@@ -1,432 +1,251 @@
 #include <iostream>
-#include <time.h>
-#include <stdio.h>
-#include <math.h>
-#include <memory.h>
+#include <ctime>
+#include <cstdio>
+#include <cmath>
+#include <cstring>
 #include <limits>
+#include <chrono>
+#include <vector>
+#include <numeric>
+#include <iomanip>
 
 using namespace std;
 
-#define HUBS 4
+// ================= CONFIGURAÇÕES =================
+const int HUBS = 2;
+const int TEMPO_MAXIMO = 60;
+const char* ARQUIVO_INSTANCIA = "instances/inst10.txt";
+// ==================================================
 
 #define MAX_PONTOS 200
 
-// #define PRINT
-// #define PRINTA_CAMINHOS
-// #define DEBUG
-
-typedef struct solucao{
+typedef struct solucao {
     int hubs[HUBS];
     float fo;
 } Solucao;
 
-typedef struct coord{
+typedef struct coord {
     float x;
     float y;
-}Coord;
+} Coord;
 
+// Variáveis globais
 int num_nos = 0;
-
-//Matriz com todas as distancias entre todos os nós
 float matriz_distancias[MAX_PONTOS][MAX_PONTOS];
-
-//Vetor de coordenadas puxado do arquivo de instancias
 Coord coordenadas[MAX_PONTOS];
 
-//Funções
-void criaSolucao(Solucao *solucao);
-void printaSolucaoArquivo(char *nome_arquivo, Solucao *solucao);
-void grasp(int execucoes, Solucao *solucaoFinal);
+// Protótipos de funções
+void leArquivo(const char* nome_arquivo);
+float distancia(Coord a, Coord b);
+void calculaMatrizDistancias();
+void escolheHubs(int *hubs);
+void criaSolucao(Solucao *solucao, int *hubs);
 void buscaLocal(Solucao *solucao);
 void clonarSolucao(Solucao *novaSolucao, Solucao *velhaSolucao);
 int isHub(int no, int *hubs);
 void printaSolucaoConsole(Solucao *solucao);
-void leArquivo(char* nome_arquivo);
-float distancia(Coord a, Coord b);
-void escolheHubs(int *hubs);
-float calculaFOPorCaminho(int* caminho);
-int isHub(int no);
-int hubMaisProximo(int pontoOrigem);
-void leArquivoSolucao(char* nome_arquivo);
-void calculaMatrizDistancias();
+void grasp(Solucao *solucaoFinal, double &tempo_melhor);
 
-int main(){
-
+int main() {
     srand(time(NULL));
-
-    // Lê o arquivo de instancias
-    leArquivo("instances/inst20.txt");
-
+    
+    leArquivo(ARQUIVO_INSTANCIA);
     calculaMatrizDistancias();
 
-    // Solução final
-    Solucao solucao;
+    vector<double> tempos_melhor;
 
-    int execucoes = 100;
-    grasp(execucoes, &solucao);
+    for(int exec = 0; exec < 3; exec++) {
+        Solucao solucao;
+        double tempo_melhor;
+        
+        cout << "\n=== EXECUÇÃO " << exec+1 << " ===" << endl;
+        grasp(&solucao, tempo_melhor);
+        tempos_melhor.push_back(tempo_melhor);
+        
+        cout << "\nResultado execução " << exec+1 << ":" << endl;
+        printaSolucaoConsole(&solucao);
+    }
 
-    printaSolucaoArquivo("sol.txt", &solucao);
-    printaSolucaoConsole(&solucao);
+    double media_tempos = accumulate(tempos_melhor.begin(), tempos_melhor.end(), 0.0) / 3;
+    cout << "\n=== RESUMO FINAL ==="
+         << "\nTempo médio para melhor solução: " << fixed << setprecision(2) << media_tempos << "s"
+         << "\n=====================" << endl;
 
     return 0;
 }
 
-void leArquivo(char *nome_arquivo)
-{
+void leArquivo(const char* nome_arquivo) {
     FILE *arq = fopen(nome_arquivo, "r");
-
-    if (arq == NULL)
-    {
-        cout << "Erro ao abrir o arquivo" << endl;
-        return;
+    if (!arq) {
+        cout << "Erro ao abrir arquivo: " << nome_arquivo << endl;
+        exit(1);
     }
 
     fscanf(arq, "%d", &num_nos);
-
-    for (int i = 0; i < num_nos; i++)
-    {
+    for(int i = 0; i < num_nos; i++) {
         fscanf(arq, "%f %f\n", &coordenadas[i].x, &coordenadas[i].y);
     }
-
     fclose(arq);
 }
 
-// Calcula a distancia entres quaisquer nós
-float distancia(Coord a, Coord b)
-{
+float distancia(Coord a, Coord b) {
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
 
-// Escolhe aletaoriamente os hubs que serão utilizados
-void escolheHubs(int *hubs)
-{
-
-    for (int i = 0; i < HUBS; i++)
-    {
-        bool unique;
-        do
-        {
-            unique = true;
-            hubs[i] = rand() % num_nos;
-            for (int j = 0; j < i; j++)
-            {
-                if (hubs[i] == hubs[j])
-                {
-                    unique = false;
-                    break;
-                }
-            }
-        } while (!unique);
-    }
-}
-
-void criaSolucao(Solucao *solucao, int *hubs){
-
-    float menorCusto = std::numeric_limits<float>::max();
-    solucao->fo = 0;
-
-    int melhorHubL = -1, melhorHubK = -1;
-    float cik, ckl, clj, custoTotal;
-
-    for (int i = 0; i < HUBS; i++)
-    {
-        solucao->hubs[i] = hubs[i];
-    }
-
-#ifdef PRINT
-    printf("n: %d\tp: %d\n", num_nos, HUBS);
-    printf("FO:\t%f\n", fo);
-    printf("HUBS:\t[");
-    for (int i = 0; i < HUBS; i++)
-    {
-        printf("%d", hubs[i]);
-        if (i < HUBS - 1)
-        {
-            printf(", ");
-        }
-    }
-    printf("]\n");
-    printf("OR\tH1\tH2\tDS\tCUSTO\n");
-#endif
-
-    // Verifica todos os nós
-    for (int i = 0; i < num_nos; i++)
-    {
-        // Lembrar de verificar somente a metade dos nós
-        for (int j = 0; j <= i; j++)
-        {
-            melhorHubK = -1;
-            melhorHubL = -1;
-            menorCusto = std::numeric_limits<float>::max();
-            cik = 0;
-            ckl = 0;
-            clj = 0;
-            custoTotal = 0;
-
-            // Testa todas as combinações de hubs
-            for (int k = 0; k < HUBS; k++)
-            {
-                for (int l = 0; l < HUBS; l++)
-                {
-                    // Custo de tranferencia entre o nó de origem e o primeiro hub (k)
-                    cik = matriz_distancias[i][hubs[k]];
-
-                    // Custo de transferência entre os hubs (k e l)
-                    ckl = matriz_distancias[hubs[k]][hubs[l]];
-
-                    // Custo de tranferencia entre o segundo hub (l) e o nó de destino
-                    clj = matriz_distancias[hubs[l]][j];
-
-                    // Custo total do caminho
-                    custoTotal = 1.0 * cik + 0.75 * ckl + 1.0 * clj;
-
-                    // Verifica se este caminho é o melhor até agora
-                    if (custoTotal < menorCusto)
-                    {
-                        menorCusto = custoTotal;
-                        melhorHubK = hubs[k];
-                        melhorHubL = hubs[l];
-                    }
-                }
-            }
-            // Salva a maior fo (maior dos menores)
-            if (menorCusto > solucao->fo)
-            {
-                solucao->fo = menorCusto;
-            }
-#ifdef PRINTA_CAMINHOS
-            printf("%d\t%d\t%d\t%d\t%f\n", i, melhorHubK, melhorHubL, j, menorCusto);
-#endif
-        }
-    }
-}
-
-void printaSolucaoArquivo(char *nome_arquivo, Solucao *solucao)
-{
-    FILE *arq = fopen(nome_arquivo, "a");
-
-    if (arq == NULL)
-    {
-        cout << "Erro ao abrir o arquivo para escrita" << endl;
-    }
-
-    fprintf(arq, "n: %d\tp: %d\n", num_nos, HUBS);
-    fprintf(arq, "FO:\t%f\n", solucao->fo);
-    fprintf(arq, "HUBS:\t[");
-    for (int i = 0; i < HUBS; i++)
-    {
-        fprintf(arq, "%d", solucao->hubs[i]);
-        if (i < HUBS - 1)
-        {
-            fprintf(arq, ", ");
-        }
-    }
-    fprintf(arq, "]\n");
-
-    //Print caminhos
-    fprintf(arq, "OR\tH1\tH2\tDS\tCUSTO\n");
-    for (int i = 0; i < num_nos; i++) {
-
-        for (int j = 0; j < num_nos; j++) {
-
-            float menorCusto = std::numeric_limits<float>::max();
-            
-            int H1 = -1, H2 = -1;
-
-            // Encontra o melhor caminho para o par (i,j)
-            for (int k = 0; k < HUBS; k++) {
-                for (int l = 0; l < HUBS; l++) {
-                    float custo = 1.0 * matriz_distancias[i][solucao->hubs[k]] 
-                                + 0.75 * matriz_distancias[solucao->hubs[k]][solucao->hubs[l]] 
-                                + 1.0 * matriz_distancias[solucao->hubs[l]][j];
-                    
-                    if (custo < menorCusto) {
-                        menorCusto = custo;
-                        H1 = solucao->hubs[k];
-                        H2 = solucao->hubs[l];
-                    }
-                }
-            }
-            fprintf(arq, "%d\t%d\t%d\t%d\t%f\n", i, H1, H2, j, menorCusto);
-        }
-    }
-
-    fclose(arq);
-}
-
-void clonar(Solucao &destino, const Solucao &origem)
-{
-    memcpy(&destino, &origem, sizeof(Solucao));
-}
-
-void leArquivoSolucao(char *nome_arquivo, Solucao *solucao)
-{
-    FILE *arq = fopen(nome_arquivo, "r");
-
-    if (arq == NULL)
-    {
-        cout << "Erro ao abrir o arquivo" << endl;
-        return;
-    }
-
-    int n, p;
-
-    fscanf(arq, "n: %d\tp: %d\n", &n, &p);
-    fscanf(arq, "FO:\t%f\n", &solucao->fo);
-    fscanf(arq, "HUBS:\t[");
-
-    for (int i = 0; i < p; i++)
-    {
-        fscanf(arq, "%d,", &solucao->hubs[i]);
-    }
-
-    fclose(arq);
-}
-
-void calculaMatrizDistancias()
-{
-    for (int i = 0; i < num_nos; i++)
-    {
-        for (int j = 0; j < num_nos; j++)
-        {
+void calculaMatrizDistancias() {
+    for(int i = 0; i < num_nos; i++) {
+        for(int j = 0; j < num_nos; j++) {
             matriz_distancias[i][j] = distancia(coordenadas[i], coordenadas[j]);
         }
     }
 }
 
-void printaSolucaoConsole(Solucao *solucao)
-{
-    printf("n: %d\tp: %d\n", num_nos, HUBS);
-    printf("FO:\t%f\n", solucao->fo);
-    printf("HUBS:\t[");
-    for (int i = 0; i < HUBS; i++)
-    {
-        printf("%d", solucao->hubs[i]);
-        if (i < HUBS - 1)
-        {
-            printf(", ");
-        }
-    }
-    printf("]\n");
-
-    printf("OR\tH1\tH2\tDS\tCUSTO\n");
-    for (int i = 0; i < num_nos; i++) {
-
-        for (int j = 0; j < num_nos; j++) {
-
-            float menorCusto = std::numeric_limits<float>::max();
-
-            int H1 = -1, H2 = -1;
-
-            // Encontra o melhor caminho para o par (i,j)
-            for (int k = 0; k < HUBS; k++) {
-                for (int l = 0; l < HUBS; l++) {
-                    float custo = 1.0 * matriz_distancias[i][solucao->hubs[k]] 
-                                + 0.75 * matriz_distancias[solucao->hubs[k]][solucao->hubs[l]] 
-                                + 1.0 * matriz_distancias[solucao->hubs[l]][j];
-                    
-                    if (custo < menorCusto) {
-                        menorCusto = custo;
-                        H1 = solucao->hubs[k];
-                        H2 = solucao->hubs[l];
-                    }
-                }
-            }
-            printf("%d\t%d\t%d\t%d\t%f\n", i, H1, H2, j, menorCusto);
-        }
-    }
-
-}
-
-void grasp(int execucoes, Solucao *solucaoFinal)
-{
-    Solucao melhorSolucao;
-    melhorSolucao.fo = std::numeric_limits<float>::max();
-    int hubs[HUBS];
-
-    for (int i = 0; i <= execucoes; i++)
-    {
-        Solucao solucaoInicial;
-
-        escolheHubs(hubs);
-        criaSolucao(&solucaoInicial, hubs);
-
-        // Fase de melhoria
-        buscaLocal(&solucaoInicial);
-
-        if(solucaoInicial.fo < melhorSolucao.fo){
-            clonarSolucao(&melhorSolucao, &solucaoInicial);
-
-        }
-    }
-
-    clonarSolucao(solucaoFinal, &melhorSolucao);
-}
-
-// Função de busca local por troca de hubs
-void buscaLocal(Solucao *solucao)
-{
-    Solucao melhorSolucao;
-    clonarSolucao(&melhorSolucao, solucao);
-
-    int hubsLocais[HUBS];
-    for (int i = 0; i < HUBS; i++)
-    {
-        hubsLocais[i] = solucao->hubs[i];
-    }
-
-    int hubsSelecionados[HUBS];
-    memset(hubsSelecionados, 0, sizeof(hubsSelecionados));
-    int posicaoHubSelecionado;
-
-    for (int i = 0; i < 100; i++){
-        posicaoHubSelecionado = rand() % HUBS;
-        hubsSelecionados[posicaoHubSelecionado] = 1;
-
-        int hubSelecionado;
-        for (int i = 0; i < 5; i++)
-        {
-            // Troca o hub na posição selecionada para uma hub que não está na solução
-            while (1)
-            {
-                hubSelecionado = rand() % num_nos;
-                if (!isHub(hubSelecionado, hubsLocais))
-                {
-                    hubsLocais[posicaoHubSelecionado] = hubSelecionado;
+void escolheHubs(int *hubs) {
+    for(int i = 0; i < HUBS; i++) {
+        bool unico;
+        do {
+            unico = true;
+            hubs[i] = rand() % num_nos;
+            for(int j = 0; j < i; j++) {
+                if(hubs[i] == hubs[j]) {
+                    unico = false;
                     break;
                 }
             }
+        } while(!unico);
+    }
+}
 
-            criaSolucao(&melhorSolucao, hubsLocais);
+void criaSolucao(Solucao *solucao, int *hubs) {
+    solucao->fo = 0;
+    memcpy(solucao->hubs, hubs, sizeof(int)*HUBS);
 
-            if (melhorSolucao.fo < solucao->fo)
-            {
-                clonarSolucao(&melhorSolucao, solucao);
+    for(int i = 0; i < num_nos; i++) {
+        for(int j = 0; j < num_nos; j++) {
+            float menor_custo = numeric_limits<float>::max();
+            
+            for(int k = 0; k < HUBS; k++) {
+                for(int l = 0; l < HUBS; l++) {
+                    float custo = 1.0 * matriz_distancias[i][solucao->hubs[k]]
+                                + 0.75 * matriz_distancias[solucao->hubs[k]][solucao->hubs[l]]
+                                + 1.0 * matriz_distancias[solucao->hubs[l]][j];
+                    
+                    if(custo < menor_custo) menor_custo = custo;
+                }
+            }
+            
+            if(menor_custo > solucao->fo) solucao->fo = menor_custo;
+        }
+    }
+}
+
+void grasp(Solucao *solucaoFinal, double &tempo_melhor_execucao) {
+    Solucao melhor;
+    melhor.fo = numeric_limits<float>::max();
+    
+    auto inicio = chrono::steady_clock::now();
+    int iteracao = 0;
+    double ultimo_tempo_melhor = 0.0;
+    bool primeira_iteracao = true;
+    
+    cout << "Iniciando GRASP..." << endl;
+    cout << "Tempo maximo: " << TEMPO_MAXIMO << " segundos" << endl;
+    
+    while(true) {
+        // Verifica tempo ANTES de processar nova iteração
+        auto agora_verificacao = chrono::steady_clock::now();
+        double decorrido_verificacao = chrono::duration<double>(agora_verificacao - inicio).count();
+        
+        if(decorrido_verificacao >= TEMPO_MAXIMO) {
+            cout << "\nTempo limite atingido!" << endl;
+            break;
+        }
+
+        iteracao++;
+        
+        // Gera nova solução
+        int hubs[HUBS];
+        escolheHubs(hubs);
+        
+        Solucao atual;
+        criaSolucao(&atual, hubs);
+        
+        if(primeira_iteracao) {
+            cout << "\nSolução inicial: FO = " << fixed << setprecision(2) << atual.fo << endl;
+            primeira_iteracao = false;
+        }
+        
+        buscaLocal(&atual);
+
+        // Mede tempo APÓS processamento
+        auto agora_atualizacao = chrono::steady_clock::now();
+        double decorrido_atualizacao = chrono::duration<double>(agora_atualizacao - inicio).count();
+        
+        // Atualiza melhor solução
+        if(atual.fo < melhor.fo) {
+            clonarSolucao(&melhor, &atual);
+            ultimo_tempo_melhor = decorrido_atualizacao;
+            cout << "Melhoria encontrada: " << fixed << setprecision(2) << melhor.fo 
+                 << " | Tempo: " << fixed << setprecision(2) << ultimo_tempo_melhor << "s"
+                 << " | Iter: " << iteracao 
+                 << endl;
+        }
+    }
+    
+    tempo_melhor_execucao = ultimo_tempo_melhor;
+    clonarSolucao(solucaoFinal, &melhor);
+}
+
+void buscaLocal(Solucao *solucao) {
+    Solucao melhor_local = *solucao;
+    int hubs_originais[HUBS];
+    memcpy(hubs_originais, solucao->hubs, sizeof(hubs_originais));
+
+    for(int i = 0; i < HUBS; i++) {
+        int hub_original = hubs_originais[i];
+        
+        for(int tentativa = 0; tentativa < 10; tentativa++) {
+            int novo_hub;
+            do {
+                novo_hub = rand() % num_nos;
+            } while(isHub(novo_hub, hubs_originais));
+            
+            solucao->hubs[i] = novo_hub;
+            criaSolucao(solucao, solucao->hubs);
+            
+            if(solucao->fo < melhor_local.fo) {
+                melhor_local = *solucao;
             }
         }
+        solucao->hubs[i] = hub_original;
     }
+    
+    *solucao = melhor_local;
 }
 
-void clonarSolucao(Solucao *novaSolucao, Solucao *velhaSolucao)
-{
-    memcpy(novaSolucao->hubs, velhaSolucao->hubs, sizeof(velhaSolucao->hubs));
-
-    for (int i = 0; i < HUBS; i++)
-    {
-        novaSolucao->hubs[i] = velhaSolucao->hubs[i];
-    }
-
-    novaSolucao->fo = velhaSolucao->fo;
+void clonarSolucao(Solucao *destino, Solucao *origem) {
+    memcpy(destino->hubs, origem->hubs, sizeof(int)*HUBS);
+    destino->fo = origem->fo;
 }
 
-int isHub(int no, int *hubs)
-{
-    for (int i = 0; i < HUBS; i++)
-    {
-        if (hubs[i] == no)
-        {
-            return 1;
-        }
+int isHub(int no, int *hubs) {
+    for(int i = 0; i < HUBS; i++) {
+        if(hubs[i] == no) return 1;
     }
     return 0;
+}
+
+void printaSolucaoConsole(Solucao *solucao) {
+    cout << "\n=============== SOLUÇÃO ===============" << endl;
+    cout << " Instância: " << ARQUIVO_INSTANCIA << endl;
+    cout << " Número de nós: " << num_nos << endl;
+    cout << " Número de hubs: " << HUBS << endl;
+    cout << " FO (Maior custo): " << fixed << setprecision(2) << solucao->fo << endl;
+    cout << " Hubs selecionados: [";
+    for(int i = 0; i < HUBS; i++) {
+        cout << solucao->hubs[i];
+        if(i < HUBS-1) cout << ", ";
+    }
+    cout << "]" << endl;
+    cout << "=======================================" << endl;
 }
