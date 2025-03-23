@@ -19,17 +19,9 @@ int hubMaisProximo(int pontoOrigem);
 
 void printaSolucao();
 
-void printaSolucaoConsole();
-
 void leArquivoSolucao(char* nome_arquivo);
 
 void calculaMatrizDistancias();
 
-
-
 //grasp
-void grasp(int execucoes);
 
-void buscaLocal(Solucao *solucao);
-
-void clonarSolucao(Solucao *novaSolucao, Solucao *velhaSolucao);
