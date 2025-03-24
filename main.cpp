@@ -71,6 +71,8 @@ int main(){
     return 0;
 }
 
+
+
 void leArquivo(char *nome_arquivo)
 {
     FILE *arq = fopen(nome_arquivo, "r");
@@ -100,24 +102,32 @@ float distancia(Coord a, Coord b)
 // Escolhe aletaoriamente os hubs que serão utilizados
 void escolheHubs(int *hubs)
 {
+    //Adicionar gulosidadeui
+    int primeiroHub = rand() % num_nos;
+    hubs[0] = primeiroHub;
+    int maisDistante;
+    Coord pontoMedio;
 
-    for (int i = 0; i < HUBS; i++)
-    {
-        bool unique;
-        do
-        {
-            unique = true;
-            hubs[i] = rand() % num_nos;
-            for (int j = 0; j < i; j++)
-            {
-                if (hubs[i] == hubs[j])
-                {
-                    unique = false;
-                    break;
+    for(int i = 1; i < HUBS; i++){
+        maisDistante = 0;
+        for (int j = 0; j < num_nos; j++){
+            if(!isHub(j, hubs)){
+                for(int k = 0; k < i; k++){
+                    pontoMedio.x += coordenadas[k].x;
+                    pontoMedio.y += coordenadas[k].y;
+                }
+                pontoMedio.x = pontoMedio.x/i;
+                pontoMedio.y = pontoMedio.y/i;
+    
+                if(distancia(pontoMedio, coordenadas[j]) > distancia(pontoMedio, coordenadas[maisDistante])){
+                    maisDistante = j;
                 }
             }
-        } while (!unique);
+        }
+        hubs[i] = maisDistante;
     }
+    
+
 }
 
 void criaSolucao(Solucao *solucao, int *hubs){
@@ -344,6 +354,7 @@ void grasp(int execucoes, Solucao *solucaoFinal)
     melhorSolucao.fo = std::numeric_limits<float>::max();
     int hubs[HUBS];
 
+    //add tempo
     for (int i = 0; i <= execucoes; i++)
     {
         Solucao solucaoInicial;
@@ -359,7 +370,7 @@ void grasp(int execucoes, Solucao *solucaoFinal)
 
         }
     }
-
+//pegar tempo limite
     clonarSolucao(solucaoFinal, &melhorSolucao);
 }
 
@@ -379,7 +390,7 @@ void buscaLocal(Solucao *solucao)
     memset(hubsSelecionados, 0, sizeof(hubsSelecionados));
     int posicaoHubSelecionado;
 
-    for (int i = 0; i < 100; i++){
+    for (int i = 0; i < num_nos; i++){
         posicaoHubSelecionado = rand() % HUBS;
         hubsSelecionados[posicaoHubSelecionado] = 1;
 
