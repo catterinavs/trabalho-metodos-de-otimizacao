@@ -7,9 +7,11 @@
 
 using namespace std;
 
-#define HUBS 4
+#define HUBS 5
 
 #define MAX_PONTOS 200
+
+#define TEMPO_MAXIMO 60
 
 // #define PRINT
 // #define PRINTA_CAMINHOS
@@ -350,13 +352,23 @@ void printaSolucaoConsole(Solucao *solucao)
 
 void grasp(int execucoes, Solucao *solucaoFinal)
 {
+    //Iniciando timer
+    clock_t inicio, tempo_atual;
+    double tempo;
+    inicio = clock();
+
+
     Solucao melhorSolucao;
     melhorSolucao.fo = std::numeric_limits<float>::max();
     int hubs[HUBS];
+    printf("\nFO Inicial: %f\n\n", tempo);
 
-    //add tempo
-    for (int i = 0; i <= execucoes; i++)
-    {
+    
+    do{
+        //tempo antes da busca
+        tempo_atual = clock();
+        tempo = (double)(tempo_atual - inicio) / CLOCKS_PER_SEC;
+
         Solucao solucaoInicial;
 
         escolheHubs(hubs);
@@ -366,11 +378,21 @@ void grasp(int execucoes, Solucao *solucaoFinal)
         buscaLocal(&solucaoInicial);
 
         if(solucaoInicial.fo < melhorSolucao.fo){
-            clonarSolucao(&melhorSolucao, &solucaoInicial);
+            printf("FO Melhorada: %f\n", solucaoInicial.fo);
+            printf("Tempo para achar essa FO: %f\n\n", tempo);
 
+            clonarSolucao(&melhorSolucao, &solucaoInicial);
         }
-    }
-//pegar tempo limite
+
+
+        //tempo depois da busca
+        tempo_atual = clock();
+        tempo = (double)(tempo_atual - inicio) / CLOCKS_PER_SEC;
+    } while (tempo < TEMPO_MAXIMO);
+
+    //
+    printf("Tempo final: %f\n\n", tempo);
+
     clonarSolucao(solucaoFinal, &melhorSolucao);
 }
 
