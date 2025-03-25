@@ -10,7 +10,7 @@ using namespace std;
 #define MAX_PONTOS 200
 #define MAX_HUBS 50
 
-#define TEMPO_MAXIMO 60
+#define TEMPO_MAXIMO 300
 
 // #define PRINT
 // #define DEBUG
@@ -29,7 +29,9 @@ typedef struct coord
 } Coord;
 
 int num_nos = 0;
-int HUBS = 2;
+
+// Número de hubs
+int HUBS = 4;
 
 // Matriz com todas as distancias entre todos os nós
 float matriz_distancias[MAX_PONTOS][MAX_PONTOS];
@@ -56,7 +58,7 @@ int main()
     srand(time(NULL));
 
     // Lê o arquivo de instancias
-    leArquivo("instances/inst25.txt");
+    leArquivo("instances/inst20.txt");
 
     calculaMatrizDistancias();
 
